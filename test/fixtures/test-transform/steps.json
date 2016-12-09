@@ -1,0 +1,6 @@
+[
+  {"step_number": 1, "step_file": "begin.sql"},
+  {"step_number": 3, "step_file": "records.sql"},
+  {"step_number": 4, "step_file": "commit.sql"},
+  {"step_number": 2, "step_file": "insert.sql"}
+]
