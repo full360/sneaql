@@ -61,13 +61,10 @@ module Sneaql
           	transform_name varchar(255) not null
           	,sql_repository varchar(255)
           	,sql_repository_branch varchar(255)
-          	,sql_s3_endpoint varchar(255)
           	,is_active #{ if @database_manager.has_boolean then 'boolean' else 'smallint' end }
-
           	,notify_on_success #{ if @database_manager.has_boolean then 'boolean' else 'smallint' end }
           	,notify_on_non_precondition_failure #{ if @database_manager.has_boolean then 'boolean' else 'smallint' end }
           	,notify_on_precondition_failure #{ if @database_manager.has_boolean then 'boolean' else 'smallint' end }
-
           	,updated_ts timestamp
           );}
       end
@@ -89,10 +86,8 @@ module Sneaql
         %{insert into #{transform_table_name}
           (
             transform_name
-            ,repository_type
             ,sql_repository
             ,sql_repository_branch
-            ,s3_endpoint
             ,is_active
             ,notify_on_success
             ,notify_on_non_precondition_failure
@@ -102,10 +97,9 @@ module Sneaql
           values
           (
             '#{params[:transform_name]}'
-            ,#{params[:repository_type]}'
             ,'#{params[:sql_repository]}'
             ,'#{params[:sql_repository_branch]}'
-            ,'#{params[:sql_s3_endpoint]}'
+            ,#{coerce_boolean(params[:is_active])}
             ,#{coerce_boolean(params[:notify_on_success])}
             ,#{coerce_boolean(params[:notify_on_non_precondition_failure])}
             ,#{coerce_boolean(params[:notify_on_precondition_failure])}

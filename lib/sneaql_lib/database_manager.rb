@@ -1,5 +1,13 @@
 module Sneaql
   module Core
+    # returns the database type based upon the jdbc url
+    # @param [String]
+    def self.database_type(jdbc_url)
+      Sneaql::Core.class_map[:database].each do |d|
+        return d[:text] if jdbc_url.match(d[:text])
+      end
+    end
+    
     # Manages preferences for a specific RDBMS implementation.
     class DatabaseManager
       attr_reader(
@@ -18,9 +26,9 @@ module Sneaql
         @autocommit_off_statement = options.fetch(:autocommit_off_statement, default_autocommit_off_statement)
         @supports_transactions = options.fetch(:supports_transactions, default_supports_transactions)
         @supports_table_locking = options.fetch(:supports_table_locking, default_supports_table_locking)
-        @begin_statement = options.fetch(:supports_transactions, default_begin_statement)
-        @commit_statement = options.fetch(:supports_transactions, default_commit_statement)
-        @rollback_statement = options.fetch(:supports_transactions, default_rollback_statement)
+        @begin_statement = options.fetch(:begin_statement, default_begin_statement)
+        @commit_statement = options.fetch(:commit_statement, default_commit_statement)
+        @rollback_statement = options.fetch(:rollback_statement, default_rollback_statement)
       end
       
       # @return [Boolean]

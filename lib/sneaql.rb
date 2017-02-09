@@ -11,6 +11,7 @@ require_relative 'sneaql_lib/parser.rb'
 require_relative 'sneaql_lib/expressions.rb'
 require_relative 'sneaql_lib/recordset.rb'
 require_relative 'sneaql_lib/database_manager.rb'
+require_relative 'sneaql_lib/standard_db_objects.rb'
 
 # module for sneaql
 module Sneaql
@@ -186,7 +187,8 @@ module Sneaql
       JDBCHelpers::ConnectionFactory.new(
         @jdbc_url,
         @db_user,
-        @db_pass
+        @db_pass,
+        @logger
       ).connection
     end
 

@@ -8,7 +8,7 @@ module Sneaql
         Sneaql::Core::RedshiftDatabaseManager
       ) 
       
-      def initialize
+      def initialize()
         super(
           {
             has_boolean: true,
@@ -16,6 +16,7 @@ module Sneaql
           }
         )  
       end
+      
     end
   end
 end

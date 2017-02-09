@@ -58,13 +58,10 @@ class TestStandardDBObjects < Minitest::Test
           	transform_name varchar(255) not null
           	,sql_repository varchar(255)
           	,sql_repository_branch varchar(255)
-          	,sql_s3_endpoint varchar(255)
           	,is_active smallint
-
           	,notify_on_success smallint
           	,notify_on_non_precondition_failure smallint
           	,notify_on_precondition_failure smallint
-
           	,updated_ts timestamp
           );}
     )
@@ -81,7 +78,7 @@ class TestStandardDBObjects < Minitest::Test
 
     JDBCHelpers::Execute.new(
       db,
-      "insert into test values('test','http://repo','develop','s3://repo',1,1,1,1,'2016-08-01T00:00:00');"
+      "insert into test values('test','http://repo','develop',1,1,1,1,'2016-08-01T00:00:00');"
     )
 
     ret = JDBCHelpers::QueryResultsToArray.new(
@@ -93,7 +90,6 @@ class TestStandardDBObjects < Minitest::Test
       "transform_name"=>"test",
       "sql_repository"=>"http://repo",
       "sql_repository_branch"=>"develop",
-      "sql_s3_endpoint"=>"s3://repo",
       "is_active"=>1,
       "notify_on_success"=>1,
       "notify_on_non_precondition_failure"=>1,

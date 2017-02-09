@@ -6,6 +6,16 @@ require_relative 'base.rb'
 module Sneaql
   # Classes to manage repositories full of SneaQL code.
   module RepoManagers
+    
+    # tells you the repo type based upon the url
+    # either git or http
+    # @param [String] repo_url
+    def self.repo_type_from_url(repo_url)
+      return 'git' if repo_url.match(/\.*git.*/i)
+      return 'http' if repo_url.match(/\.*http.*/i)
+    end
+    
+    
     # pulls a branch from a remote git repo
     class GitRepoManager < Sneaql::Core::RepoDownloadManager
       Sneaql::Core::RegisterMappedClass.new(

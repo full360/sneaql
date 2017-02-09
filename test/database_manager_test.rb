@@ -8,6 +8,29 @@ require_relative "#{$base_path}/lib/sneaql_lib/database_manager.rb"
 require_relative "#{$base_path}/test/helpers/sqlite_helper.rb"
 
 class DatabaseManagerTest < Minitest::Test
+  def test_database_type()
+    assert_equal(
+      'redshift',
+      Sneaql::Core.database_type(
+        'jdbc:redshift:server:5439/dbname'
+      )
+    )
+    
+    assert_equal(
+      'vertica',
+      Sneaql::Core.database_type(
+        'jdbc:vertica:server:5433/dbname'
+      )
+    )
+    
+    assert_equal(
+      'sqlite',
+      Sneaql::Core.database_type(
+        'jdbc:sqlite'
+      )
+    )
+  end
+  
   def test_database_manager
     d = Sneaql::Core::DatabaseManager.new(
       has_boolean: true,
