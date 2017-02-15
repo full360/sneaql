@@ -91,8 +91,11 @@ module Sneaql
       @jdbc_connection = create_jdbc_connection
       current_status(:running)
       iterate_steps_and_statements
-    rescue Sneaql::Exceptions::SQLTestExitCondition, Sneaql::Exceptions::TransformIsLocked => e
+    rescue Sneaql::Exceptions::TransformIsLocked => e
       @transform_error = e
+      @logger.info(e.message)
+    rescue Sneaql::Exceptions::SQLTestExitCondition => e
+      @transform_error = nil
       @logger.info(e.message)
     rescue => e
       @exit_code = 1

@@ -11,11 +11,99 @@ To enable conditional functionality in otherwise static SQL scripts in order to 
 * Idempotent preconditions in SQL scripts
 * Simple parameterization
 
+## Installing SneaQL
+
+SneaQL runs on jruby, the ruby language implemented in java.  Jruby allows for the use of JDBC, which reduces the complexity in configuring database connections. 
+
+### Installing JRuby (OSX)
+
+The best way to install jruby on OSX is using the following applications:
+
+* [**Homebrew**](https://brew.sh/) - a package manager for OSX
+* [**rbenv**](https://github.com/rbenv/rbenv) - a ruby environment manager
+* [**ruby-build**](https://github.com/rbenv/ruby-build) - an extension to rbenv which allows for easy ruby install
+
+The following commands should be run in the terminal app, and will install all three of the above applications:
+
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install rbenv ruby-build
+```
+
+Once rbenv and ruby-build are installed... you can install and configure jruby using the following commands:
+
+```
+rbenv install jruby-9.1.5.0
+rbenv global jruby-9.1.5.0
+```
+
+Please note that this will make jruby the default version of ruby for your system.  If you need to use other versions of ruby for other tasks please read up on how to use rbenv.
+
+### Installing JRuby (Windows)
+
+To install jruby on windows you will need to download the appropriate installer from the jruby website:
+
+[**http://jruby.org**](http://jruby.org)
+
+
+### Installing SneaQL Gem
+
+Now that jruby is installed... installing SneaQL is easy:
+
+```
+gem install sneaql
+rbenv rehash
+```
+
+## Running SneaQL from the command line
+
+Once SneaQL is installed... running it is easy! Simply navigate to the directory containing a SneaQL transform, then run the sneaql command:
+
+```
+cd /path/to/my/transform
+sneaql exec .
+```
+
+SneaQL requires some basic information about the database you want to connect to in order to operate:
+
+#### Connection Details
+
+Connection details to the database can be provided one of several ways, in order of precendence
+
+1. command line arguments 
+2. environment variables
+3. environment variables stored in a sneaql.env file
+
+The required fields are listed below (command line argument / environment variable)
+
+* **--jdbc_url/SNEAQL_JDBC_URL** - the JDBC url associated with your database instance. You can get this from your DBA
+* **--db_user/SNEAQL_DB_USER** - username for database connection
+* **--db_pass/SNEAQL_DB_PASS** - password for database user
+* **--jdbc_driver_jar/SNEAQL_JDBC_DRIVER_JAR** - location of the JDBC driver jar file (see section below)
+* **--jdbc_driver_class/SNEQAL_JDBC_DRIVER_CLASS** - class name for use with JDBC driver
+
+#### sneaql.json
+
+sneaql.json is required file that tells sneaql the order in which to execute the transform "steps"... where each step correlates to a SQL file.  Every transform needs to have a sneaql.json file in it's base directory.  Below is an example sneaql.json file that executes two files, silly.sql and serious.sql in that order:
+
+```
+[
+  {"step_number" : 1, "step_file" : "silly.sql" },
+  {"step_number" : 2, "step_file" : "serious.sql" }
+]
+```
+
+#### JDBC Driver
+
+In order to connect you will need the JDBC driver jar for your database. At this time, the following databases are supported with info on where to find the JDBC driver listed below:
+
+* **Amazon Redshift** - [http://docs.aws.amazon.com/redshift/latest/mgmt/configure-jdbc-connection.html](http://docs.aws.amazon.com/redshift/latest/mgmt/configure-jdbc-connection.html)
+* **HPE Vertica** - [https://my.vertica.com/download/vertica/client-drivers/](https://my.vertica.com/download/vertica/client-drivers/)
+
+Note that you should always use the JDBC driver matching the version of your database.  If you have any questions or issues you should reach out to your DBA.
+
+
 ## Running SneaQL from JRuby
-
-Install the SneaQL gem as you normally would...
-
-     gem install sneaql
 
 SneaQL transforms are initiated by way of the Sneaql::Transform class... which is passed a hash of parameters at initialization.
 
