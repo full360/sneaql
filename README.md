@@ -64,7 +64,11 @@ cd /path/to/my/transform
 sneaql exec .
 ```
 
-SneaQL requires some basic information about the database you want to connect to in order to operate:
+For help with the exec command parameters:
+
+```
+sneaql help exec
+```
 
 #### Connection Details
 
