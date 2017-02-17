@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/full360/sneaql/master/sneaql.jpg" alt="sneaql raccoon" width="600">
+
 # SneaQL - Sneaking Interactivity into SQL statements
 
 SQL Markup with Command Tags
