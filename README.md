@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/full360/sneaql/master/sneaql.jpg" alt="sneaql raccoon" width="600">
+<img src="https://raw.githubusercontent.com/full360/sneaql/master/sneaql.jpg" alt="sneaql raccoon" width="800">
 
 # SneaQL - Sneaking Interactivity into SQL statements
 
@@ -149,7 +149,7 @@ Sneaql::Transform objects provide a few attributes for understanding the outcome
 
 ## Overview
 
-Sneaql commands are embedded in special comment tags in the format /*-sneaql_command param1 param2-*/ .  These commands are associated with the SQL statement that immediately follows the tag.  Sneaql command tags appear as comments and are ingnored by the RDBMS.
+SneaQL commands are embedded in special comment tags in the format /*-sneaql_command param1 param2-*/ .  These commands are associated with the SQL statement that immediately follows the tag.  Sneaql command tags appear as comments and are ingnored by the RDBMS.
 
 Sneaql enables you with the following capabilities:
 
