@@ -58,7 +58,7 @@ the above will execute the transform in the current directory.  note that sneaql
           logger.level = Logger::DEBUG if options[:debug] == true
           
           Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
-
+          
           base_path = File.expand_path(transform_path)
           raise 'base_path not provided' if base_path == nil
           
@@ -141,6 +141,126 @@ the above will execute the transform in the current directory.  note that sneaql
         e.backtrace.each { |b| logger.error b }
         exit 1
   		end
+  		
+  		desc "dryrun PATH_TO_TRANFORM_ROOT", "validate transform"
+  		
+  		method_option :step_file, :type => :string, :aliases => "-s"
+      method_option :env_file, :type => :string, :aliases => "-e"
+      method_option :jdbc_url, :type => :string, :aliases => "-url"
+      method_option :db_user, :type => :string, :aliases => "-u"
+      method_option :db_pass, :type => :string, :aliases => "-p"
+      method_option :jdbc_driver_jar, :type => :string, :aliases => "-j"
+      method_option :jdbc_driver_class, :type => :string, :aliases => "-c"
+      
+  		long_desc <<-LONGDESC
+executes the transform provided
+
+PARAMETERS
+
+you can provide the following parameters via an environment variable or by putting them in a sneaql.env file
+\n
+* export SNEAQL_JDBC_URL=jdbc:redshift://your-redshift-hostname:5439/dbname \n
+* export SNEAQL_DB_USER="dbadmin" \n
+* export SNEAQL_DB_PASS="password" \n
+* export SNEAQL_JDBC_DRIVER_JAR="java/RedshiftJDBC4-1.1.6.1006.jar" \n
+* export SNEAQL_JDBC_DRIVER_CLASS="com.amazon.redshift.jdbc4.Driver" \n
+\n
+note that if you provide an attribute on the command line it will override the environment variable value.
+\n
+EXAMPLE \n
+$ sneaql exec . \n
+the above will execute the transform in the current directory.  note that sneaql.json file must be in this directory or provided via -s option.
+      LONGDESC
+      
+      def dryrun(transform_path)
+        begin
+          logger.level = Logger::DEBUG
+          
+          Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
+
+          base_path = File.expand_path(transform_path)
+          raise 'base_path not provided' if base_path == nil
+          
+          step_file = options[:step_file] ? options[:step_file] : "#{base_path}/sneaql.json"
+          raise 'step_file not provided' if step_file == nil
+          
+          jdbc_url = options[:jdbc_url] ? options[:jdbc_url] : ENV['SNEAQL_JDBC_URL']
+          raise 'jdbc_url not provided' if jdbc_url == nil
+          
+          db_user = options[:db_user] ? options[:db_user] : ENV['SNEAQL_DB_USER']
+          raise 'db_user not provided' if db_user == nil
+          
+          db_pass = options[:db_pass] ? options[:db_pass] : ENV['SNEAQL_DB_PASS']
+          raise 'db_pass not provided' if db_pass == nil
+          
+          jdbc_driver_jar = options[:jdbc_driver_jar] ? options[:jdbc_driver_jar] : ENV['SNEAQL_JDBC_DRIVER_JAR']
+          raise 'jdbc_driver_jar not provided' if jdbc_driver_jar == nil
+          
+          jdbc_driver_class = options[:jdbc_driver_class] ? options[:jdbc_driver_class] : ENV['SNEAQL_JDBC_DRIVER_CLASS']
+          raise 'jdbc_driver_class not provided' if step_file == nil
+        rescue => e
+          puts e.message
+          exit 1
+        end
+
+        # custom formatter provides logging with thread id and multi-line
+        # entries each receiving their own log prefix
+        if ENV['SNEAQL_LOG_UTC']
+          logger.formatter = proc do |severity, datetime, _progname, msg|
+            t = ''
+            msg.to_s.split(/\n+/).each do |line|
+              t += "[#{severity}] #{datetime.utc} tid#{Thread.current.object_id}: #{line}\n"
+            end
+            t
+          end
+        else
+          # default to local TZ
+          logger.formatter = proc do |severity, datetime, _progname, msg|
+            t = ''
+            msg.to_s.split(/\n+/).each do |line|
+              t += "[#{severity}] #{datetime} tid#{Thread.current.object_id}: #{line}\n"
+            end
+            t
+          end
+        end
+        
+        database = Sneaql::Core.database_type(jdbc_url)
+        unless database
+          raise 'database specified in jdbc url is not supported, or malformed jdbc url'
+          exit 1 
+        end
+        
+        begin  
+          require_relative jdbc_driver_jar
+          java_import jdbc_driver_class
+        rescue => e
+          raise 'jdbc driver error'
+          exit 1
+        end
+
+        t = Sneaql::Transform.new(
+          {  
+            transform_name: base_path,
+            repo_base_dir: base_path,
+            repo_type: 'local',
+            database: database,
+            jdbc_url: jdbc_url,
+            db_user: db_user,
+            db_pass: db_pass,
+            step_metadata_manager_type: 'local_file',
+            step_metadata_file_path: step_file
+          },
+          logger
+        )
+        t.validate
+        
+        exit t.exit_code
+      rescue => e
+        logger.error e.message
+        e.backtrace.each { |b| logger.error b }
+        exit 1
+  		end
+
     end
   end
 end

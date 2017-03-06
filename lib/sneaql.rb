@@ -29,7 +29,7 @@ module Sneaql
     # :initializing, :connecting_to_database, :running, :completed, :error
     # @return [Array] array of valid transform statuses
     def valid_statuses
-      [:initializing, :connecting_to_database, :running, :completed, :error]
+      [:initializing, :connecting_to_database, :running, :completed, :error, :validating, :validated]
     end
 
     # Sets the current status of the transform.
@@ -79,6 +79,40 @@ module Sneaql
       run if @params[:run] == true
     end
 
+    # validate the transform.
+    def validate
+      @expression_handler = create_expression_handler
+      @recordset_manager = create_recordset_manager
+      @repo_manager = create_repo_manager
+      @steps = create_metadata_manager
+      @parsed_steps = create_parsed_steps(@steps)
+      current_status(:validating)
+      validate_parsed_steps(@parsed_steps)
+    rescue Sneaql::Exceptions::TransformIsLocked => e
+      @transform_error = e
+      @logger.info(e.message)
+    rescue Sneaql::Exceptions::SQLTestExitCondition => e
+      @transform_error = nil
+      @logger.info(e.message)
+    rescue => e
+      @exit_code = 1
+      @transform_error = e
+      current_status(:error)
+      @logger.error(e.message)
+      e.backtrace { |b| @logger.error b }
+    ensure
+      @end_time = Time.new.utc
+
+      if @transform_error.nil?
+        current_status(:validated)
+      else
+        current_status(:error)
+      end
+
+      @logger.info("#{@transform_name} validation time #{@end_time - @start_time}s")
+      @logger.info("#{@transform_name} exit code: #{@exit_code} status: #{@status}")
+    end
+    
     # Runs the actual transform.
     def run
       @expression_handler = create_expression_handler
