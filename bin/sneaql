@@ -109,7 +109,7 @@ the above will execute the transform in the current directory.  note that sneaql
 
         t = Sneaql::Transform.new(
           {  
-            transform_name: File.dirname(base_path),
+            transform_name: base_path,
             repo_base_dir: base_path,
             repo_type: 'local',
             database: database,
