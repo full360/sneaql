@@ -13,15 +13,6 @@ def logger
   SneaqlStandard::Log
 end
 
-# custom formatter provides logging with thread id and multi-line
-# entries each receiving their own log prefix
-logger.formatter = proc do |severity, datetime, _progname, msg|
-  t = ''
-  msg.to_s.split(/\n+/).each do |line|
-    t += "[#{severity}] #{datetime} tid#{Thread.current.object_id}: #{line}\n"
-  end
-  t
-end
 
 # sneaql
 module Sneaql
@@ -67,7 +58,7 @@ the above will execute the transform in the current directory.  note that sneaql
           logger.level = Logger::DEBUG if options[:debug] == true
           
           Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
-          
+
           base_path = File.expand_path(transform_path)
           raise 'base_path not provided' if base_path == nil
           
@@ -91,6 +82,27 @@ the above will execute the transform in the current directory.  note that sneaql
         rescue => e
           puts e.message
           exit 1
+        end
+
+        # custom formatter provides logging with thread id and multi-line
+        # entries each receiving their own log prefix
+        if ENV['SNEAQL_LOG_UTC']
+          logger.formatter = proc do |severity, datetime, _progname, msg|
+            t = ''
+            msg.to_s.split(/\n+/).each do |line|
+              t += "[#{severity}] #{datetime.utc} tid#{Thread.current.object_id}: #{line}\n"
+            end
+            t
+          end
+        else
+          # default to local TZ
+          logger.formatter = proc do |severity, datetime, _progname, msg|
+            t = ''
+            msg.to_s.split(/\n+/).each do |line|
+              t += "[#{severity}] #{datetime} tid#{Thread.current.object_id}: #{line}\n"
+            end
+            t
+          end
         end
         
         database = Sneaql::Core.database_type(jdbc_url)
@@ -134,3 +146,6 @@ the above will execute the transform in the current directory.  note that sneaql
 end
 
 Sneaql::Standard::CLI.start(ARGV)
+
+
+
