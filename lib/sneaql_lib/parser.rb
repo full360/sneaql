@@ -61,6 +61,7 @@ module Sneaql
         all_statements_valid = true
         @statements.each_with_index do |_s, i|
           cmd = command_at_index(i)
+          @logger.debug("validating #{cmd}")
           unless statement_args_are_valid?(cmd)
             all_statements_valid = false
             @logger.info "argument validation error: #{cmd}"

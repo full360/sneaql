@@ -3,18 +3,18 @@ require 'logger'
 module Sneaql
   module Core
     # Handles variables, expression evaluation, and comparisons.
-    # A single ExpressionHandler is created per transform.  This 
+    # A single ExpressionHandler is created per transform.  This
     # object will get passed around to the various commands as well
     # as other manager objects attached to the transform class.
     class ExpressionHandler
       # @param [Hash] environment_variables pass in a set of ENV
-      # @param [Logger] logger object otherwise will default to new Logger 
+      # @param [Logger] logger object otherwise will default to new Logger
       def initialize(environment_variables, logger = nil)
         @logger = logger ? logger : Logger.new(STDOUT)
         @environment_variables = environment_variables
         @session_variables = {}
       end
-       
+
       # @param [String] var_name identifier for variable
       # @param [String, Fixnum, Float] var_value value to store, expressions here will not be evaluated
       def set_session_variable(var_name, var_value)
@@ -24,58 +24,58 @@ module Sneaql
 
       # validates that this would make a suitable variable name
       # @param [String] var_name
-      # @return [Boolean] 
+      # @return [Boolean]
       def valid_session_variable_name?(var_name)
         r = (var_name.to_s.match(/^\w+$/) && !var_name.to_s.match(/env\_\w*/) && !var_name.to_s.match(/^\d+/)) ? true : false
         @logger.debug "validating #{var_name} as valid variable identifier indicates #{r}"
         r
       end
-      
+
       # @param [String] var_name identifier for variable
       # @return [String, Fixnum, Float]
       def get_session_variable(var_name)
         @session_variables[var_name]
       end
-      
+
       # convenience method, outputs all session variables to the logger
       def output_all_session_variables
         @logger.debug("current session variables: #{@session_variables}")
       end
-      
+
       # @param [String] var_name identifier for environment variable as defined in ENV
       # @return [String]
       def get_environment_variable(var_name)
         @environment_variables[var_name]
       end
-  
-      # @param [String] expression either a numeric constant, string constant in '', 
+
+      # @param [String] expression either a numeric constant, string constant in '',
       # or reference to session or environment variable
       # @return [String, Fixnum, Float]
       def evaluate_expression(expression)
         return expression unless expression.class == String
-  
+
         # reference to an environment variable
         # :env_var_name or :ENV_var_name
         # env variable references are case insensitive in this case
         if expression =~ /\:env\_\w+/i
-          return @environment_variables[expression.delete(':env_').strip]
-        
+          return @environment_variables[expression.gsub(/\:env\_/i, '').strip]
+
         # reference to a variable
         # ANSI dynamic SQL :var_name
         # variable names are case sensitive
         elsif expression =~ /\:\w+/
-          return @session_variables[expression.delete(':').strip]
-  
+          return @session_variables[expression.gsub(/\:/, '').strip]
+
         # deprecated
         elsif expression =~ /\{.*\}/
           @logger.warn '{var_name} deprecated. use dynamic SQL syntax :var_name'
           return @session_variables[expression.gsub(/\{|\}/, '').strip]
-  
+
         # string literal enclosed in single quotes
         # only works for a single word... no whitespace allowed at this time
         elsif expression =~ /\'.*\'/
           return expression.delete("'").strip
-  
+
         # else assume it is a numeric literal
         # need some better thinking here
         else
@@ -86,7 +86,7 @@ module Sneaql
         e.backtrace.each { |b| logger.error(b.to_s) }
         raise Sneaql::Exceptions::ExpressionEvaluationError
       end
-  
+
       # evaluates all expressions in a given SQL statement.
       #   replaces...
       #     environment variables in the form :env_HOSTNAME
@@ -104,7 +104,7 @@ module Sneaql
         e.backtrace.each { |b| logger.error b.to_s }
         raise Sneaql::Exceptions::ExpressionEvaluationError
       end
-      
+
       # evaluates all environment variables in a given SQL statement.
       #   replaces...
       #     environment variables in the form :env_HOSTNAME
@@ -141,20 +141,20 @@ module Sneaql
           statement.gsub!(/\{#{k}\}/, @session_variables[k].to_s)
         end
       end
-      
+
       # validates that this would make a suitable reference at run time.
       # checks to see this is single quoted string, :variable_name, {var_name) or number (1, 1.031, etc.)
       # @param [String] expr value to check
       def valid_expression_reference?(expr)
         return expr.to_s.match(/(^\'.+\'$|^\:\w+$|^\{\w+\}$|^\d+$|^\d+\.\d*$)/) ? true : false
       end
-      
+
       # Operators valid for expression comparison
       # @return [Array<String>]
       def valid_operators
         ['=', '!=', '>', '<', '>=', '<=', 'like', 'notlike']
       end
-      
+
       # provides a standardized method of comparing two expressions.
       # note that this only works for variables and constants.
       # current version supports float, integer, and contigious strings.
@@ -165,18 +165,18 @@ module Sneaql
         unless valid_operators.include?(operator)
           raise Sneaql::Exceptions::InvalidComparisonOperator
         end
-        
+
         @logger.debug "evaluating #{exp1} #{operator} #{exp2}"
-        
+
         # evaluate exps and coerce data types
         coerced = coerce_data_types(
           evaluate_expression(exp1),
           evaluate_expression(exp2)
         )
-  
+
         compare_values(operator, coerced[0], coerced[1])
       end
-      
+
       # coerces the data types for both expressions to match for valid comparison
       # @param [String, Float, Fixnum] exp1 expression for left operand
       # @param [String, Float, Fixnum] exp2 expression for right operand
@@ -196,7 +196,7 @@ module Sneaql
         end
         [exp1, exp2]
       end
-      
+
       # performs the actual comparison between two values
       # @param [String] operator comparison operator @see valid_operators
       # @param [String] exp1 expression for left operand
@@ -216,16 +216,16 @@ module Sneaql
         when 'notlike' then return !like_operator(exp1, exp2)
         end
       end
-      
+
       # performs SQL style LIKE comparison between inputs
       # @param [String] left_operand
       # @param [String] like_right_operand this will be the like expression
-      # @return [Boolean] 
+      # @return [Boolean]
       def like_operator(left_operand, like_right_operand)
         #converts to string before comparison
         return left_operand.to_s.match(wildcard_to_regex(like_right_operand.to_s)) ? true : false
       end
-      
+
       # converts a SQL LIKE wildcard expression to a Regexp
       # @param [String] wildcard like expression
       # @return [Regexp] returns regexp object for use in match comparison
