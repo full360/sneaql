@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'sneaql'
-  s.version     = '0.0.7'
+  s.version     = '0.0.8'
   s.date        = '2017-03-21'
   s.summary     = "sneaql language core"
   s.description = "provides the base classes required to run and extend sneaql"
