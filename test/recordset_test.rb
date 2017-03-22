@@ -56,7 +56,7 @@ class TestRecordsetManager < Minitest::Test
 
     rs.store_recordset('rs', test_rs)
 
-    c = 'rs include a = 2 exclude b like 2016%'.split
+    c = "rs include a = 2 exclude b like '2016%'".split
     t = rs.parse_recordset_expression(c)
     assert_equal(
       t,
@@ -71,7 +71,7 @@ class TestRecordsetManager < Minitest::Test
           :condition=>"exclude",
           :field=>"b",
           :operator=>"like",
-          :expression=>"2016%"
+          :expression=>"'2016%'"
         }
       ]
     )
