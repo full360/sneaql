@@ -4,6 +4,10 @@
 
 SQL Markup with Command Tags
 
+Here is a video to give you a quick overview:
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/FWVI93hUtGM/0.jpg)](https://www.youtube.com/watch?v=FWVI93hUtGM "SneaQL Overview")
+
 ## Purpose
 
 To enable conditional functionality in otherwise static SQL scripts in order to facilitate the following:
@@ -86,7 +90,7 @@ The required fields are listed below (command line argument / environment variab
 * **--db_user/SNEAQL_DB_USER** - username for database connection
 * **--db_pass/SNEAQL_DB_PASS** - password for database user
 * **--jdbc_driver_jar/SNEAQL_JDBC_DRIVER_JAR** - location of the JDBC driver jar file (see section below)
-* **--jdbc_driver_class/SNEQAL_JDBC_DRIVER_CLASS** - class name for use with JDBC driver
+* **--jdbc_driver_class/SNEAQL_JDBC_DRIVER_CLASS** - class name for use with JDBC driver
 
 #### sneaql.json
 
@@ -147,11 +151,17 @@ Sneaql::Transform objects provide a few attributes for understanding the outcome
      p t.current_step
      p t.current_statement
 
-## Overview
+## Command Overview
 
-SneaQL commands are embedded in special comment tags in the format /*-sneaql_command param1 param2-*/ .  These commands are associated with the SQL statement that immediately follows the tag.  Sneaql command tags appear as comments and are ingnored by the RDBMS.
+SneaQL commands are embedded in special comment tags in the format 
 
-Sneaql enables you with the following capabilities:
+```
+/*-sneaql_command param1 param2-*/
+```
+
+These commands are associated with the SQL statement that immediately follows the tag.  SneaQL command tags appear as comments and are ingnored by the RDBMS.
+
+SneaQL enables you with the following capabilities:
 
 * Exiting a SQL script if a condition is met.
 * Storing results of a SQL query into a variable for use in subsequent sneaql statements.
@@ -452,6 +462,7 @@ iterates through every record of a named recordset that has been stored in memor
 **parameters:**
 
 * required - recordset name
+* optional - series of conditional expressions using syntax include|exclude recordset_field operator expression (see example below)
 
 **behavior:**
 
@@ -461,5 +472,10 @@ iterates through every record of a named recordset that has been stored in memor
 
 **examples:**
 
-     /*-iterate rs-*/
-     insert into some_table(f, g) values (:rs.a, :rs.b);
+```
+/*-iterate rs-*/
+insert into some_table(f, g) values (:rs.a, :rs.b);
+
+/*-iterate rs- include a = 2 exclude b > 5 */
+insert into some_table(f, g) values (:rs.a, :rs.b);
+```

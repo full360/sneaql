@@ -54,7 +54,7 @@ class TestRecordsetManager < Minitest::Test
       {'a' => 2, 'b' => '20160303'}
     ]
 
-    rs.store_recordset('rs',test_rs)
+    rs.store_recordset('rs', test_rs)
 
     c = 'rs include a = 2 exclude b like 2016%'.split
     t = rs.parse_recordset_expression(c)

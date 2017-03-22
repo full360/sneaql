@@ -112,7 +112,7 @@ module Sneaql
             valid << valid_recordset?(a)
           else valid << false end
         end
-        @logger.debug valid
+        @logger.debug(valid)
         !valid.include?(false)
       end
 

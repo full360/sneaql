@@ -19,6 +19,7 @@ module Sneaql
       # @param [String, Fixnum, Float] var_value value to store, expressions here will not be evaluated
       def set_session_variable(var_name, var_value)
         @logger.info("setting session var #{var_name} to #{var_value}")
+        raise "can't set environment variable #{var_name}" unless valid_session_variable_name?(var_name)
         @session_variables[var_name] = var_value
       end
 

@@ -267,7 +267,7 @@ module Sneaql
             valid = []
             valid << valid_recordset?(args[0])
             args[1..args.length - 1].each_slice(4) do |s|
-              if ['include','exclude'].include?(s[0])
+              if ['include', 'exclude'].include?(s[0])
                 valid << true
               else
                 valid << false
@@ -301,7 +301,7 @@ module Sneaql
         def iterate_records_conditionally(*args)
           recordset = args.to_a[0]
           @logger.info "iterating recordset #{recordset}..."
-          conditions=@recordset_manager.parse_recordset_expression(args.to_a)
+          conditions = @recordset_manager.parse_recordset_expression(args.to_a)
           @recordset_manager.recordset[recordset].each_with_index do |i, n|
             @logger.debug("#{n + 1} of #{recordset}: #{i}")
             next unless @recordset_manager.evaluate_expression_against_record(i, conditions)

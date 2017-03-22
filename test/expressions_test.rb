@@ -31,6 +31,23 @@ class TestSneaqlExpressionManager < Minitest::Test
         x.get_session_variable(v[:var_name])
       )
     end
+    
+    # make sure we can't set an env var using this method
+    errored = false
+    
+    begin
+      x.set_session_variable(
+        'env_BAD_ENV_VAR',
+        0
+      )   
+    rescue => e
+      errored = true
+    end
+    
+    assert_equal(
+      true,
+      errored
+    )
   end
 
   def test_evaluate_expression
