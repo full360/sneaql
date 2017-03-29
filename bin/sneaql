@@ -172,6 +172,7 @@ the above will execute the transform in the current directory.  note that sneaql
       method_option :db_pass, :type => :string, :aliases => "-p"
       method_option :jdbc_driver_jar, :type => :string, :aliases => "-j"
       method_option :jdbc_driver_class, :type => :string, :aliases => "-c"
+      method_option :debug , :default => false, :type => :boolean
       
   		long_desc <<-LONGDESC
 executes the transform provided
@@ -195,7 +196,8 @@ the above will execute the transform in the current directory.  note that sneaql
       
       def dryrun(transform_path)
         begin
-          logger.level = Logger::DEBUG
+          logger.level = Logger::INFO
+          logger.level = Logger::DEBUG if options[:debug] == true
           
           Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
 
