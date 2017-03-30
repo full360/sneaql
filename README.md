@@ -8,6 +8,11 @@ Here is a video to give you a quick overview:
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/FWVI93hUtGM/0.jpg)](https://www.youtube.com/watch?v=FWVI93hUtGM "SneaQL Overview")
 
+This one shows you what it takes to run a simple SneaQL transform:
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/Tgc9LMlSueQ/0.jpg)](https://www.youtube.com/watch?v=Tgc9LMlSueQ "SneaQL Hands On")
+
+
 ## Purpose
 
 To enable conditional functionality in otherwise static SQL scripts in order to facilitate the following:
