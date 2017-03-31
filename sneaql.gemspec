@@ -18,8 +18,9 @@ Gem::Specification.new do |s|
   
   s.add_runtime_dependency 'logger','~>1.2'
   s.add_development_dependency 'minitest','~>5.9'
-  s.add_runtime_dependency 'git','~>1.3'
-  s.add_runtime_dependency "jdbc_helpers",'=0.0.4'
-  s.add_runtime_dependency "zip",'>=0.9'
+  s.add_runtime_dependency 'git','~> 1.3'
+  s.add_runtime_dependency "jdbc_helpers",'= 0.0.4'
+  s.add_runtime_dependency "zip",'>= 0.9'
+  s.add_runtime_dependency "thor",'~> 0.19'
   s.required_ruby_version = '>= 2.0' 
 end
