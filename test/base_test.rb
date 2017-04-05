@@ -53,9 +53,9 @@ class TestBaseCommand < Minitest::Test
   def test_argument_validators
     d = TestSneaqlBaseCommand.new(
       'jdbc',
-      Sneaql::Core::ExpressionHandler.new(ENV),
+      Sneaql::Core::ExpressionHandler.new,
       Sneaql::Core::RecordsetManager.new(
-        Sneaql::Core::ExpressionHandler.new(ENV)
+        Sneaql::Core::ExpressionHandler.new
       ),
       'statement'
     )

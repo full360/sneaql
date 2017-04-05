@@ -7,7 +7,7 @@ require_relative "#{$base_path}/lib/sneaql_lib/expressions.rb"
 class TestSneaqlExpressionManager < Minitest::Test
 
   def test_set_env_vars_via_constructor
-    x = Sneaql::Core::ExpressionHandler.new(ENV)
+    x = Sneaql::Core::ExpressionHandler.new
 
     assert_equal(
       ENV['HOSTNAME'],
@@ -16,7 +16,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   end
 
   def test_set_and_get_session_variables
-    x = Sneaql::Core::ExpressionHandler.new ENV
+    x = Sneaql::Core::ExpressionHandler.new
     [
       {var_name: 'string', var_value: 'string'},
       {var_name: 'number', var_value: 22.5}
@@ -53,7 +53,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   def test_evaluate_expression
     ENV['sneaql'] = '22'
 
-    x = Sneaql::Core::ExpressionHandler.new(ENV)
+    x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('number', 3)
 
     assert_equal(
@@ -86,7 +86,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   end
 
   def test_evaluate_all_expressions
-    x = Sneaql::Core::ExpressionHandler.new ENV
+    x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('number', 3)
     x.set_session_variable('string', 'wordy')
 
@@ -102,7 +102,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   end
 
   def test_valid_expression_reference
-    x = Sneaql::Core::ExpressionHandler.new ENV
+    x = Sneaql::Core::ExpressionHandler.new
     [
       ["'turtle'", true],
       [':turtle', true],
@@ -119,7 +119,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   end
 
   def test_compare_expressions
-    x = Sneaql::Core::ExpressionHandler.new(ENV)
+    x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('one',1)
     x.set_session_variable('two',2)
 
@@ -203,7 +203,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   end
 
   def test_valid_session_variable_name
-    x = Sneaql::Core::ExpressionHandler.new(ENV)
+    x = Sneaql::Core::ExpressionHandler.new
     [
       ["varname", true],
       ["'turtle'", false],
@@ -217,5 +217,34 @@ class TestSneaqlExpressionManager < Minitest::Test
         x.valid_session_variable_name?(t[0])
       )
     end
+  end
+  
+  def test_filtered_environment_variables
+    # tests that the filter works for all supplied variables
+    x = Sneaql::Core::ExpressionHandler.new
+    ENV.keys.each do |k|
+      assert_equal(
+        ENV[k],
+        x.get_environment_variable(k)
+      )
+    end
+    
+    ENV['TEST'] = 'purple'
+    ENV['TEST2'] = 'orange'
+    ENV['SNEAQL_AVAILABLE_ENV_VARS'] = 'TEST,TEST2'
+    
+    x = Sneaql::Core::ExpressionHandler.new
+    
+    assert_equal(
+      x.filtered_environment_variables,
+      {
+        'TEST' => 'purple',
+        'TEST2' => 'orange'
+      }
+    )
+    
+    ENV.delete('TEST')
+    ENV.delete('TEST2')
+    ENV.delete('SNEAQL_AVAILABLE_ENV_VARS')
   end
 end

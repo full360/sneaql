@@ -43,7 +43,7 @@ class TestSneaqlCoreCommands < Minitest::Test
 
   def test_assign_integer
     jdbc_connection = give_me_an_empty_test_database
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlAssign.new(
       jdbc_connection,
       expression_handler,
@@ -62,7 +62,7 @@ class TestSneaqlCoreCommands < Minitest::Test
 
   def test_assign_string
     jdbc_connection = give_me_an_empty_test_database
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlAssign.new(
       jdbc_connection,
       expression_handler,
@@ -83,7 +83,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_assign_result_integer
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlAssignResult.new(
       jdbc_connection,
       expression_handler,
@@ -104,7 +104,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_assign_result_string
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlAssignResult.new(
       jdbc_connection,
       expression_handler,
@@ -125,7 +125,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_execute_update
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
 
     c = Sneaql::Core::Commands::SneaqlExecute.new(
       jdbc_connection,
@@ -147,7 +147,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_execute_if
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlExecuteIf.new(
       jdbc_connection,
       expression_handler,
@@ -178,7 +178,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_sneaql_test_negative
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlTest.new(
       jdbc_connection,
       expression_handler,
@@ -199,7 +199,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_sneaql_test_positive
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlTest.new(
       jdbc_connection,
       expression_handler,
@@ -220,7 +220,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_exit_if_positive
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlExitIf.new(
       jdbc_connection,
       expression_handler,
@@ -241,7 +241,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_exit_if_negative
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlExitIf.new(
       jdbc_connection,
       expression_handler,
@@ -262,7 +262,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_exit_step_if_positive
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlExitStepIf.new(
       jdbc_connection,
       expression_handler,
@@ -283,7 +283,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_exit_step_if_negative
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     c = Sneaql::Core::Commands::SneaqlExitStepIf.new(
       jdbc_connection,
       expression_handler,
@@ -336,7 +336,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_recordset
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     c = Sneaql::Core::Commands::SneaqlRecordsetFromQuery.new(
       jdbc_connection,
@@ -361,7 +361,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_iterate
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     recordset_manager.store_recordset(
       'rs',
@@ -397,7 +397,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_iterate_with_filter
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     recordset_manager.store_recordset(
       'rs',
@@ -436,7 +436,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   def test_rs_directories
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
 
     c = Sneaql::Core::Commands::SneaqlRecordsetFromDirGlob.new(
@@ -457,7 +457,7 @@ class TestSneaqlCoreCommands < Minitest::Test
   end
 
   def test_argument_validation
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     [
       {test_class: Sneaql::Core::Commands::SneaqlAssign, args: ['turkey',22], is_valid: true},

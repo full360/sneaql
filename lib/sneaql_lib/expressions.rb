@@ -9,9 +9,9 @@ module Sneaql
     class ExpressionHandler
       # @param [Hash] environment_variables pass in a set of ENV
       # @param [Logger] logger object otherwise will default to new Logger
-      def initialize(environment_variables, logger = nil)
+      def initialize(logger = nil)
         @logger = logger ? logger : Logger.new(STDOUT)
-        @environment_variables = environment_variables
+        @environment_variables = filtered_environment_variables
         @session_variables = {}
       end
 
@@ -232,6 +232,23 @@ module Sneaql
       # @return [Regexp] returns regexp object for use in match comparison
       def wildcard_to_regex(wildcard)
         Regexp.new("^#{wildcard}$".gsub('%','.*').gsub('_','.'))
+      end
+      
+      # create a hash built from supplied environment variables. 
+      # if SNEAQL_AVAILABLE_ENV_VARS is provided (as a comma delimited list)
+      # only the listed values are included.
+      # return <Hash>
+      def filtered_environment_variables
+        env_vars = {}
+        if ENV['SNEAQL_AVAILABLE_ENV_VARS']
+          @logger.debug("filtering environment variables")
+          available = ENV['SNEAQL_AVAILABLE_ENV_VARS'].split(',')
+          ENV.keys.each { |k| env_vars[k] = ENV[k] if available.include?(k) }
+        else
+          @logger.debug("setting environment variables")
+          ENV.keys.each { |k| env_vars[k] = ENV[k] }
+        end
+        return env_vars
       end
     end
   end

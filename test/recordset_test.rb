@@ -27,7 +27,7 @@ class TestRecordsetManager < Minitest::Test
   end
 
   def test_store_recordset
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     rs = Sneaql::Core::RecordsetManager.new(expression_handler)
 
     test_rs = [
@@ -45,7 +45,7 @@ class TestRecordsetManager < Minitest::Test
   end
 
   def test_parse_expression
-    expression_handler = Sneaql::Core::ExpressionHandler.new(ENV)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
     rs = Sneaql::Core::RecordsetManager.new(expression_handler)
 
     test_rs = [

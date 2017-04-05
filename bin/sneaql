@@ -268,6 +268,22 @@ the above will execute the transform in the current directory.  note that sneaql
         exit 1
   		end
 
+  		desc "containerize PATH_TO_TRANFORM_ROOT CONTAINER_TAG", "build a docker container out of this transform"
+  		long_desc <<-LONGDESC
+builds a runnable docker image from the specified transform.
+
+EXAMPLE \n
+$ sneaql containerize . my-transform-name:0.0.1\n
+the above will build a transform named my-transform-name:0.0.1 based upon the contents of the sneaql.json file in the provided (current) directory
+      LONGDESC
+      
+      def containerize(repo_dir, container_tag)
+        Sneaql::Docker::LocalTransformDockerfile.new(
+          repo_dir,
+          container_tag
+        )
+      end
+      
     end
   end
 end

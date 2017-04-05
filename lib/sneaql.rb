@@ -12,6 +12,7 @@ require_relative 'sneaql_lib/expressions.rb'
 require_relative 'sneaql_lib/recordset.rb'
 require_relative 'sneaql_lib/database_manager.rb'
 require_relative 'sneaql_lib/standard_db_objects.rb'
+require_relative 'sneaql_lib/docker.rb'
 
 # module for sneaql
 module Sneaql
@@ -112,7 +113,7 @@ module Sneaql
       @logger.info("#{@transform_name} validation time #{@end_time - @start_time}s")
       @logger.info("#{@transform_name} exit code: #{@exit_code} status: #{@status}")
     end
-    
+
     # Runs the actual transform.
     def run
       @expression_handler = create_expression_handler
@@ -155,7 +156,7 @@ module Sneaql
     # Creates an ExpressionHandler object
     # @return [Sneaql::Core::ExpressionHandler]
     def create_expression_handler
-      Sneaql::Core::ExpressionHandler.new(ENV, @logger)
+      Sneaql::Core::ExpressionHandler.new(@logger)
     end
 
     # Creates a RepoDownloadManager object

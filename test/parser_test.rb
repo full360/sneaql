@@ -44,7 +44,7 @@ class TestSneaqlStepParser < Minitest::Test
   end
 
   def expression_handler
-    Sneaql::Core::ExpressionHandler.new(ENV)
+    Sneaql::Core::ExpressionHandler.new
   end
 
   def recordset_manager
