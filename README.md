@@ -97,6 +97,14 @@ The required fields are listed below (command line argument / environment variab
 * **--jdbc_driver_jar/SNEAQL_JDBC_DRIVER_JAR** - location of the JDBC driver jar file (see section below)
 * **--jdbc_driver_class/SNEAQL_JDBC_DRIVER_CLASS** - class name for use with JDBC driver
 
+Optional flags:
+
+* **--debug** - Debug logging
+* **SNEAQL_LOG_UTC** - Enables UTC logging if true
+* **SNEAQL_AVAILABLE_ENV_VARS** - Comma delimited list of environment variables made available to the SneaQL transform.
+* **SNEAQL_EXTENSIONS** - Comma delimited list of SneaQL extensions (indicated by the name of their ruby gem)
+
+
 #### sneaql.json
 
 sneaql.json is required file that tells sneaql the order in which to execute the transform "steps"... where each step correlates to a SQL file.  Every transform needs to have a sneaql.json file in it's base directory.  Below is an example sneaql.json file that executes two files, silly.sql and serious.sql in that order:
@@ -210,7 +218,6 @@ Several commands take action based upon the result of a comparison between two e
      if either one of the data types is an integer, convert both to integer
 
 
-
 ## Recordsets
 
 SneaQL provides a facility to store the results of a query in memory, to be used by other commands.  Included in the core platform are the following commands:
@@ -224,7 +231,7 @@ This is very powerful feature that provides basic looping functionality.  If you
 
 * Always put a TOP or LIMIT clause on your query to prevent unintentionally huge recordsets from being stored.
 * Only select the fields you need into your recordset (SELECT * is not your friend here!)
-* Increase your JVM heap size to provide some headroom.  export JRUBY_OPTS="-J-Xmx8G -J-Xss8096k"
+* Increase your JVM heap size to provide some headroom.  `export JRUBY_OPTS="-J-Xmx8G -J-Xss8096k"`
 
 ## Example
 
