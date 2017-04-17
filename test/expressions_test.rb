@@ -31,19 +31,19 @@ class TestSneaqlExpressionManager < Minitest::Test
         x.get_session_variable(v[:var_name])
       )
     end
-    
+
     # make sure we can't set an env var using this method
     errored = false
-    
+
     begin
       x.set_session_variable(
         'env_BAD_ENV_VAR',
         0
-      )   
+      )
     rescue => e
       errored = true
     end
-    
+
     assert_equal(
       true,
       errored
@@ -83,6 +83,16 @@ class TestSneaqlExpressionManager < Minitest::Test
       '3',
       x.evaluate_expression('{number}')
     ) #deprecated
+    
+    assert_equal(
+      true,
+      x.evaluate_expression('true')
+    )
+
+    assert_equal(
+      false,
+      x.evaluate_expression('false')
+    )
   end
 
   def test_evaluate_all_expressions
@@ -192,12 +202,29 @@ class TestSneaqlExpressionManager < Minitest::Test
       {op1: 'turkey', op: 'notlike', op2: 'turk', result: true},
       {op1: 'turkey', op: 'notlike', op2: 'turk_y', result: false},
       {op1: 'turkey', op: 'notlike', op2: 'turk%', result: false},
-      {op1: 'turkey', op: 'notlike', op2: '%turk%', result: false}
+      {op1: 'turkey', op: 'notlike', op2: '%turk%', result: false},
 
+      {op1: 'true', op: '=', op2: "'true'", result: true},
+      {op1: 'true', op: '=', op2: "'t'", result: true},
+      {op1: 'true', op: '=', op2: "true", result: true},
+      {op1: 'false', op: '=', op2: "'false'", result: true},
+      {op1: 'false', op: '=', op2: "'f'", result: true},
+      {op1: 'false', op: '=', op2: 'false', result: true},
+      {op1: 'true', op: '=', op2: "'false'", result: false},
+      {op1: 'true', op: '=', op2: "'f'", result: false},
+      {op1: 'true', op: '=', op2: 'false', result: false},
+      {op1: 'true', op: '=', op2: "1", result: true},
+      {op1: 'true', op: '=', op2: "0", result: false},
+      {op1: 'false', op: '=', op2: "1", result: false},
+      {op1: 'false', op: '=', op2: "0", result: true}
     ].each do |v|
       assert_equal(
         v[:result],
-        x.compare_expressions(v[:op], v[:op1], v[:op2])
+        x.compare_expressions(
+          v[:op],
+          x.evaluate_expression(v[:op1]),
+          x.evaluate_expression(v[:op2])
+        )
       )
     end
   end
@@ -218,7 +245,7 @@ class TestSneaqlExpressionManager < Minitest::Test
       )
     end
   end
-  
+
   def test_filtered_environment_variables
     # tests that the filter works for all supplied variables
     x = Sneaql::Core::ExpressionHandler.new
@@ -228,13 +255,13 @@ class TestSneaqlExpressionManager < Minitest::Test
         x.get_environment_variable(k)
       )
     end
-    
+
     ENV['TEST'] = 'purple'
     ENV['TEST2'] = 'orange'
     ENV['SNEAQL_AVAILABLE_ENV_VARS'] = 'TEST,TEST2'
-    
+
     x = Sneaql::Core::ExpressionHandler.new
-    
+
     assert_equal(
       x.filtered_environment_variables,
       {
@@ -242,9 +269,77 @@ class TestSneaqlExpressionManager < Minitest::Test
         'TEST2' => 'orange'
       }
     )
-    
+
     ENV.delete('TEST')
     ENV.delete('TEST2')
     ENV.delete('SNEAQL_AVAILABLE_ENV_VARS')
+  end
+  
+  def test_sql_injection_filter
+    x = Sneaql::Core::ExpressionHandler.new
+    [
+      [';', false],
+      ["'", false],
+      ["drop table", false],
+      ["drop procedure", false],
+      ["drop VIEW", false],
+      ["drop function", false],
+      ["drop user", false],
+      ["drop database", false],
+      ["ALTER table", false],
+      ["alter procedure", false],
+      ["alter VIEW", false],
+      ["alter function", false],
+      ["alter user", false],
+      ["alter database", false],
+      ["safe", true],
+      [1.5, true],
+      [1, true]
+    ].each do |t|
+      assert_equal(
+        t[1],
+        x.sql_injection_filter(t[0])
+      )
+    end
+  end
+  
+  def test_validate_environment_variables
+    ENV['badboy'] = 'drop table users;'
+    
+    error_occurred = false
+    begin
+      x = Sneaql::Core::ExpressionHandler.new
+    rescue => e
+      error_occurred = true
+    end
+    
+    assert_equal(
+      true,
+      error_occurred
+    )
+    
+    ENV.delete('badboy')
+  end
+  
+  def test_coerce_boolean
+    x = Sneaql::Core::ExpressionHandler.new
+    [
+      ['true', true],
+      ["t", true],
+      ["1", true],
+      ['false', false],
+      ["f", false],
+      ["0", false],
+      [1, true],
+      [0, false],
+      ['adfa', nil],
+      [true, true],
+      [false, false]
+    ].each do |t|
+      assert_equal(
+        t[1],
+        x.coerce_boolean(t[0])
+      )
+    end
   end
 end

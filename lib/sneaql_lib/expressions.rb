@@ -12,6 +12,8 @@ module Sneaql
       def initialize(logger = nil)
         @logger = logger ? logger : Logger.new(STDOUT)
         @environment_variables = filtered_environment_variables
+        validate_environment_variables unless ENV['SNEAQL_DISABLE_SQL_INJECTION_CHECK']
+        @environment_variables.freeze
         @session_variables = {}
       end
 
@@ -71,6 +73,12 @@ module Sneaql
         elsif expression =~ /\{.*\}/
           @logger.warn '{var_name} deprecated. use dynamic SQL syntax :var_name'
           return @session_variables[expression.gsub(/\{|\}/, '').strip]
+
+        # boolean
+        elsif ['true', 'false'].include?(expression.downcase)
+          @logger.debug "handling #{expression} as boolean"
+          return true if expression.downcase == 'true'
+          return false if expression.downcase == 'false'
 
         # string literal enclosed in single quotes
         # only works for a single word... no whitespace allowed at this time
@@ -147,7 +155,7 @@ module Sneaql
       # checks to see this is single quoted string, :variable_name, {var_name) or number (1, 1.031, etc.)
       # @param [String] expr value to check
       def valid_expression_reference?(expr)
-        return expr.to_s.match(/(^\'.+\'$|^\:\w+$|^\{\w+\}$|^\d+$|^\d+\.\d*$)/) ? true : false
+        return expr.to_s.match(/(^\'.+\'$|^\:\w+$|^\{\w+\}$|^\d+$|^\d+\.\d*$|true|false)/i) ? true : false
       end
 
       # Operators valid for expression comparison
@@ -159,6 +167,7 @@ module Sneaql
       # provides a standardized method of comparing two expressions.
       # note that this only works for variables and constants.
       # current version supports float, integer, and contigious strings.
+      # as of 0.0.13 expressions need to be evaluated before being passed
       # @param [String] operator comparison operator @see valid_operators
       # @param [String] exp1 expression for left operand
       # @param [String] exp2 expression for right operand
@@ -171,10 +180,9 @@ module Sneaql
 
         # evaluate exps and coerce data types
         coerced = coerce_data_types(
-          evaluate_expression(exp1),
-          evaluate_expression(exp2)
+          exp1,
+          exp2
         )
-
         compare_values(operator, coerced[0], coerced[1])
       end
 
@@ -184,8 +192,14 @@ module Sneaql
       # @return [Array<Float, Fixnum, String>] returns array with both input expressions coerced to the same data type
       def coerce_data_types(exp1, exp2)
         # coerce data types to make for a good comparison
+        @logger.debug("coercing types #{[exp1.class, exp2.class]}")
         if exp1.class == exp2.class
           nil # nothing to do... continue with comparison
+        elsif ([exp1.class, exp2.class].include?(FalseClass)) or ([exp1.class, exp2.class].include?(TrueClass))
+          unless [coerce_boolean(exp1), coerce_boolean(exp2)].include?(nil)
+            exp1 = coerce_boolean(exp1)
+            exp2 = coerce_boolean(exp2)
+          end
         elsif [exp1.class, exp2.class].include? Float
           # if either is a float then make sure they are both floats
           exp1 = exp1.to_f
@@ -195,7 +209,30 @@ module Sneaql
           exp1 = exp1.to_i
           exp2 = exp2.to_i
         end
+        @logger.debug("coerced types #{[exp1.class, exp2.class]}")
         [exp1, exp2]
+      end
+
+      # evaluates string or fixnum values to coerce into boolean
+      # @param [Object] value
+      # @return [Object]
+      def coerce_boolean(value)
+        retval = nil
+        if [TrueClass, FalseClass].include?(value.class)
+          retval = value
+        elsif value.class == Fixnum
+          retval = true if value == 1
+          retval = false if value == 0
+        elsif value.class == String
+          tmp = value.downcase.strip
+          case tmp
+          when 'f', 'false', '0'
+            retval = false
+          when 't', 'true', '1'
+            retval = true
+          end
+        end
+        return retval
       end
 
       # performs the actual comparison between two values
@@ -233,8 +270,8 @@ module Sneaql
       def wildcard_to_regex(wildcard)
         Regexp.new("^#{wildcard}$".gsub('%','.*').gsub('_','.'))
       end
-      
-      # create a hash built from supplied environment variables. 
+
+      # create a hash built from supplied environment variables.
       # if SNEAQL_AVAILABLE_ENV_VARS is provided (as a comma delimited list)
       # only the listed values are included.
       # return <Hash>
@@ -249,6 +286,24 @@ module Sneaql
           ENV.keys.each { |k| env_vars[k] = ENV[k] }
         end
         return env_vars
+      end
+
+      # basic regex filtering to help combat sql injection
+      # by way of environment variables
+      # @param [String] value value for validation
+      # @return [Boolean] returns true if value is safe
+      def sql_injection_filter(value)
+        return false if value.to_s.match(/(\'|\;|(drop|alter).*(table|user|view|column|database|schema|function|sequence|procedure))/i)
+        return true
+      end
+
+      # insures that all environment variables pass SQL injection test
+      def validate_environment_variables
+        @environment_variables.keys.each do |k|
+          unless sql_injection_filter(@environment_variables[k])
+            raise 'SQL Injection Filter Error'
+          end
+        end
       end
     end
   end

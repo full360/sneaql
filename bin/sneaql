@@ -91,10 +91,26 @@ the above will execute the transform in the current directory.  note that sneaql
       
       def exec(transform_path)
         begin
+          # default log level
           logger.level = Logger::INFO
-          logger.level = Logger::DEBUG if options[:debug] == true
           
+          # bring in the env vars  
           Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
+          
+          # set log level if provided
+          if ENV['SNEAQL_LOG_LEVEL']
+            case ENV['SNEAQL_LOG_LEVEL'].downcase
+              when 'debug' then logger.level = Logger::DEBUG
+              when 'warn' then logger.level = Logger::WARN
+              when 'error' then logger.level = Logger::ERROR
+              when 'fatal' then logger.level = Logger::FATAL
+              else
+                raise "log level #{ENV['SNEAQL_LOG_LEVEL']} not supported"
+            end
+          end
+          
+          # debug flag takes precedence
+          logger.level = Logger::DEBUG if options[:debug] == true
           
           base_path = File.expand_path(transform_path)
           raise 'base_path not provided' if base_path == nil
@@ -116,6 +132,7 @@ the above will execute the transform in the current directory.  note that sneaql
           
           jdbc_driver_class = options[:jdbc_driver_class] ? options[:jdbc_driver_class] : ENV['SNEAQL_JDBC_DRIVER_CLASS']
           raise 'jdbc_driver_class not provided' if step_file == nil
+          
         rescue => e
           puts e.message
           exit 1
@@ -175,7 +192,7 @@ the above will execute the transform in the current directory.  note that sneaql
       method_option :debug , :default => false, :type => :boolean
       
   		long_desc <<-LONGDESC
-executes the transform provided
+validates the transform without actually running it
 
 PARAMETERS
 
@@ -196,11 +213,27 @@ the above will execute the transform in the current directory.  note that sneaql
       
       def dryrun(transform_path)
         begin
+          # default log level
           logger.level = Logger::INFO
+          
+          # bring in the env vars  
+          Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
+          
+          # set log level if provided
+          if ENV['SNEAQL_LOG_LEVEL']
+            case ENV['SNEAQL_LOG_LEVEL'].downcase
+              when 'debug' then logger.level = Logger::DEBUG
+              when 'warn' then logger.level = Logger::WARN
+              when 'error' then logger.level = Logger::ERROR
+              when 'fatal' then logger.level = Logger::FATAL
+              else
+                raise "log level #{ENV['SNEAQL_LOG_LEVEL']} not supported"
+            end
+          end
+          
+          # debug flag takes precedence
           logger.level = Logger::DEBUG if options[:debug] == true
           
-          Dotenv.load(options[:env_file] ? options[:env_file] : 'sneaql.env')
-
           base_path = File.expand_path(transform_path)
           raise 'base_path not provided' if base_path == nil
           

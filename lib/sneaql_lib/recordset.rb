@@ -81,8 +81,8 @@ module Sneaql
           @logger.debug("applying #{exp} to #{record}")
           raw_result = @expression_manager.compare_expressions(
             exp[:operator],
-            record[exp[:field]],
-            exp[:expression]
+            @expression_manager.evaluate_expression(record[exp[:field]]),
+            @expression_manager.evaluate_expression(exp[:expression])
           )
           if exp[:condition] == 'include'
             conditions << raw_result

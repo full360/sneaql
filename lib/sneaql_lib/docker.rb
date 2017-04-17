@@ -31,9 +31,9 @@ module Sneaql
       end
 
       def dockerfile()
-%{FROM sneaql:0.0.1
-RUN mkdir /tmp/repo 
-#{@step_files.map {|s| "ADD #{s[:local_path]} /tmp/repo/#{s[:docker_path]}"}.join("\n")}
+%{FROM full360/sneaql:latest
+RUN mkdir /repo 
+#{@step_files.map {|s| "ADD #{s[:local_path]} /repo/#{s[:docker_path]}"}.join("\n")}
 }
       end
 
