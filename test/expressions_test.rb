@@ -5,7 +5,6 @@ $base_path=File.expand_path("#{File.dirname(__FILE__)}/../")
 require_relative "#{$base_path}/lib/sneaql_lib/expressions.rb"
 
 class TestSneaqlExpressionManager < Minitest::Test
-
   def test_set_env_vars_via_constructor
     x = Sneaql::Core::ExpressionHandler.new
 
@@ -339,6 +338,40 @@ class TestSneaqlExpressionManager < Minitest::Test
       assert_equal(
         t[1],
         x.coerce_boolean(t[0])
+      )
+    end
+  end
+  
+  def test_array_has_boolean_value?
+    x = Sneaql::Core::ExpressionHandler.new
+    [
+      {arr: [0, 0], result: false},
+      {arr: ['true', 'false'], result: false},
+      {arr: [true, 0], result: true},
+      {arr: [0, false], result: true}
+    ].each do |t|
+      assert_equal(
+        t[:result],
+        x.array_has_boolean_value?(t[:arr])
+      )
+    end
+  end
+  
+  def test_text_to_boolean
+    x = Sneaql::Core::ExpressionHandler.new
+    [
+      {text: '0', value: false},
+      {text: 'f', value: false},
+      {text: 'false', value: false},
+      {text: 'FaLSe', value: false},
+      {text: '1', value: true},
+      {text: 't', value: true},
+      {text: 'true', value: true},
+      {text: 'notbool', value: nil}
+    ].each do |t|
+      assert_equal(
+        t[:value],
+        x.text_to_boolean(t[:text])
       )
     end
   end

@@ -10,7 +10,7 @@ module Sneaql
       # @param [String] file_path pathname to step file
       # @param [Sneaql::ExpressionHandler] expression_handler
       # @param [Sneaql::RecordsetManager] recordset_manager
-      # @param [Logger] logger optional logger, if omitted default logger will be used
+      # @param [Logger] logger optional, if omitted default logger will be used
       def initialize(file_path, expression_handler, recordset_manager, logger = nil)
         @logger = logger ? logger : Logger.new(STDOUT)
         @expression_handler = expression_handler

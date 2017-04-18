@@ -39,19 +39,19 @@ module Sneaql
         )
         return true
       end
-      
+
       # Coerces a boolean to the appropriate value for the database type.
       # May return a 0 or 1 in RDBMS where boolean is not supported.
       # @param [Boolean] boolean_value
       # @return [Boolean, Fixnum]
       def coerce_boolean(boolean_value)
-        if @database_manager.has_boolean 
-          boolean_value 
-        else 
-          boolean_value == true ? 1 : 0 
+        if @database_manager.has_boolean
+          boolean_value
+        else
+          boolean_value == true ? 1 : 0
         end
       end
-      
+
       # Create table statement for primary transform table.
       # @param [String] transform_table_name fully qualified name for this table
       # @return [String]
@@ -68,7 +68,7 @@ module Sneaql
           	,updated_ts timestamp
           );}
       end
-      
+
       # Creates a record in the transforms table.
       # @param [String] transform_table_name
       # @param [Hash] params Hash of parameters with symbols matching column names
@@ -106,7 +106,7 @@ module Sneaql
             ,current_timestamp
           );}
       end
-      
+
       # Drops and recreates the transform steps table.
       # @param [String] transform_steps_table_name fully qualified name for this table
       # @return [Boolean]

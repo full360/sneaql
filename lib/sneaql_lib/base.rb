@@ -2,7 +2,7 @@ require 'zip/zip'
 require 'fileutils'
 require 'logger'
 
-#top level namespace for sneaql objects
+# top level namespace for sneaql objects
 module Sneaql
   # contains the base classes for the extendable parts of sneaql:
   #   commands (the actual commands specified in sneaql tags)

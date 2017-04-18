@@ -5,7 +5,7 @@ require_relative 'exceptions.rb'
 module Sneaql
   module Core
     # Core Sneaql language command tags.
-    # You can create your own tags by extending 
+    # You can create your own tags by extending
     # Sneaql::Core::SneaqlCommand and overriding the
     # action method.  You should also override arg_definition
     # and potentially validate_args if have a complex argument

@@ -6,7 +6,7 @@ module Sneaql
         :database,
         'sqlite',
         Sneaql::Core::SqliteDatabaseManager
-      ) 
+      )
     end
   end
 end

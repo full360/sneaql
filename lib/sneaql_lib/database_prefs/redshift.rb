@@ -6,17 +6,16 @@ module Sneaql
         :database,
         'redshift',
         Sneaql::Core::RedshiftDatabaseManager
-      ) 
-      
-      def initialize()
+      )
+
+      def initialize
         super(
           {
             has_boolean: true,
             autocommit_off_statement: 'set autocommit=off;'
           }
-        )  
+        )
       end
-      
     end
   end
 end

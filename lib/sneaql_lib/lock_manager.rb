@@ -44,7 +44,7 @@ module Sneaql
         lock_value = false
 
         if @database_manager.supports_transactions == true
-          l = JDBCHelpers::Execute.new(
+          JDBCHelpers::Execute.new(
             jdbc_connection,
             @database_manager.begin_statement,
             @logger
@@ -52,7 +52,7 @@ module Sneaql
         end
 
         if @database_manager.supports_table_locking == true
-          l = JDBCHelpers::Execute.new(
+          JDBCHelpers::Execute.new(
             jdbc_connection,
             @database_manager.lock_table_statement(@transform_lock_table),
             @logger
@@ -94,7 +94,7 @@ module Sneaql
           )
 
           if @database_manager.supports_transactions == true
-            l = JDBCHelpers::Execute.new(
+            JDBCHelpers::Execute.new(
               jdbc_connection,
               @database_manager.commit_statement,
               @logger
@@ -104,7 +104,7 @@ module Sneaql
           lock_value = true
         else
           if @database_manager.supports_transactions == true
-            l = JDBCHelpers::Execute.new(
+            JDBCHelpers::Execute.new(
               jdbc_connection,
               @database_manager.rollback_statement,
               @logger
@@ -132,7 +132,7 @@ module Sneaql
         jdbc_connection = create_jdbc_connection
 
         if @database_manager.supports_transactions == true
-          l = JDBCHelpers::Execute.new(
+          JDBCHelpers::Execute.new(
             jdbc_connection,
             @database_manager.begin_statement,
             @logger
@@ -140,7 +140,7 @@ module Sneaql
         end
 
         if @database_manager.supports_table_locking == true
-          l = JDBCHelpers::Execute.new(
+          JDBCHelpers::Execute.new(
             jdbc_connection,
             @database_manager.lock_table_statement(@transform_lock_table),
             @logger
@@ -163,7 +163,7 @@ module Sneaql
         )
       ensure
         jdbc_connection.close
-        
+
         return true
       end
 
