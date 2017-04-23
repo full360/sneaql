@@ -1,7 +1,7 @@
 gem "minitest"
 require 'minitest/autorun'
 
-$base_path=File.expand_path("#{File.dirname(__FILE__)}/../")
+$base_path = File.expand_path("#{File.dirname(__FILE__)}/../")
 require_relative "#{$base_path}/test/helpers/sqlite_helper.rb"
 require_relative "#{$base_path}/lib/sneaql.rb"
 
@@ -9,7 +9,7 @@ class TestSneaqlTransform < Minitest::Test
   def test_transform_end_to_end
     File.delete('memory') if File.exists? 'memory'
     
-    t=Sneaql::Transform.new({  
+    t = Sneaql::Transform.new({  
       transform_name: 'test-transform',
       repo_base_dir: "#{$base_path}/test/fixtures/test-transform",
       repo_type: 'local', #could be 'http','local_file'

@@ -1,3 +1,5 @@
+require_relative 'tokenizer.rb'
+
 module Sneaql
   module Core
     # Parses a step file into discrete statements.
@@ -39,12 +41,16 @@ module Sneaql
         raise Sneaql::Exceptions::StatementParsingError
       end
 
-      # Extracts tag and splits into an array
+      # Extracts array of tokens from tag
       # @param [String] statement_text_with_command
       # @return [Array]
       def tag_splitter(statement_text_with_command)
+        # updated to use tokenizer 
         # splits out all the tag elements into an array
-        statement_text_with_command.split('-*/')[0].gsub('/*-', '').strip.split
+        # statement_text_with_command.split('-*/')[0].gsub('/*-', '').strip.split
+        command = statement_text_with_command.split('-*/')[0].gsub('/*-', '').strip
+        t = Sneaql::Core::Tokenizer.new
+        t.tokenize(command)
       end
 
       # Returns command tag from statement at specified index.  Allows for
