@@ -13,6 +13,7 @@ require_relative 'sneaql_lib/recordset.rb'
 require_relative 'sneaql_lib/database_manager.rb'
 require_relative 'sneaql_lib/standard_db_objects.rb'
 require_relative 'sneaql_lib/docker.rb'
+require_relative 'sneaql_lib/tokenizer.rb'
 
 # module for sneaql
 module Sneaql

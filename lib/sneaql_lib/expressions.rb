@@ -1,4 +1,5 @@
 require 'logger'
+require 'time'
 
 module Sneaql
   module Core
@@ -15,6 +16,19 @@ module Sneaql
         validate_environment_variables unless ENV['SNEAQL_DISABLE_SQL_INJECTION_CHECK']
         @environment_variables.freeze
         @session_variables = {}
+        @current_time_zone = ENV['SNEAQL_TIME_ZONE'] ? ENV['SNEAQL_TIME_ZONE'] : Time.new.zone.to_s
+      end
+      
+      def set_current_time_zone(new_tz)
+        @current_time_zone = new_tz
+      end
+
+      # converts a time object to the provided time zone
+      # @param[Time] ts timestamp with tz to ignore
+      # @param[String] tz time zone to use as override
+      def timestring_at_timezone(ts, tz)
+        t = Time.parse(ts)
+        return Time.parse("#{t.year}-#{t.month}-#{t.day} #{t.hour}:#{t.min}:#{t.sec} #{tz}")
       end
 
       # @param [String] var_name identifier for variable
@@ -57,20 +71,24 @@ module Sneaql
       def evaluate_expression(expression)
         return expression unless expression.class == String
 
+        # first handle empty string
+        if expression == "''"
+          return ''
+
         # reference to an environment variable
         # :env_var_name or :ENV_var_name
         # env variable references are case insensitive in this case
-        if expression =~ /\:env\_\w+/i
+        elsif expression =~ /^\:env\_\w+/i
           return @environment_variables[expression.gsub(/\:env\_/i, '').strip]
 
         # reference to a variable
         # ANSI dynamic SQL :var_name
         # variable names are case sensitive
-        elsif expression =~ /\:\w+/
+        elsif expression =~ /^\:\w+/
           return @session_variables[expression.gsub(/\:/, '').strip]
 
         # deprecated
-        elsif expression =~ /\{.*\}/
+        elsif expression =~ /^\{.*\}$/
           @logger.warn('{var_name} deprecated. use dynamic SQL syntax :var_name')
           return @session_variables[expression.gsub(/\{|\}/, '').strip]
 
@@ -81,9 +99,9 @@ module Sneaql
           return false if expression.downcase == 'false'
 
         # string literal enclosed in single quotes
-        # only works for a single word... no whitespace allowed at this time
-        elsif expression =~ /\'.*\'/
-          return expression.delete("'").strip
+
+        elsif expression.match(/^\s*\'.*\'\s*$/)
+          return expression.strip[1..expression.strip.length - 2]
 
         # else assume it is a numeric literal
         # need some better thinking here
@@ -92,7 +110,7 @@ module Sneaql
         end
       rescue => e
         @logger.error("error evaluating expression: #{e.message}")
-        e.backtrace.each { |b| logger.error(b.to_s) }
+        e.backtrace.each { |b| @logger.error(b.to_s) }
         raise Sneaql::Exceptions::ExpressionEvaluationError
       end
 
@@ -155,7 +173,7 @@ module Sneaql
       # checks to see this is single quoted string, :variable_name, {var_name) or number (1, 1.031, etc.)
       # @param [String] expr value to check
       def valid_expression_reference?(expr)
-        expr.to_s.match(/(^\'.+\'$|^\:\w+$|^\{\w+\}$|^\d+$|^\d+\.\d*$|true|false)/i) ? true : false
+        expr.to_s.match(/(^\s*\'.+\'\s*$|^\:\w+$|^\{\w+\}$|^\d+$|^\d+\.\d*$|true|false)/i) ? true : false
       end
 
       # Operators valid for expression comparison
@@ -183,7 +201,7 @@ module Sneaql
           exp1,
           exp2
         )
-        
+
         compare_values(operator, coerced[0], coerced[1])
       end
 
@@ -201,6 +219,18 @@ module Sneaql
             exp1 = coerce_boolean(exp1)
             exp2 = coerce_boolean(exp2)
           end
+        elsif exp1.class == Time
+          tmp = coerce_datetime(exp2)
+          if tmp
+            exp1 = coerce_datetime(exp1)
+            exp2 = tmp
+          end
+        elsif exp2.class == Time
+          tmp = coerce_datetime(exp1)
+          if tmp
+            exp1 = tmp
+            exp2 = coerce_datetime(exp2)
+          end
         elsif [exp1.class, exp2.class].include?(Float)
           # if either is a float then make sure they are both floats
           exp1 = exp1.to_f
@@ -213,7 +243,17 @@ module Sneaql
         @logger.debug("coerced types #{[exp1.class, exp2.class]}")
         [exp1, exp2]
       end
-      
+
+      def coerce_datetime(obj)
+        retobj = nil
+        case
+          when obj.class == Fixnum then retobj = Time.at(obj)
+          when obj.class == String then retobj = Time.parse(obj)
+          when obj.class == Time then retobj = obj
+        end
+        retobj
+      end
+
       # checks to see if any element of the array has a boolean value
       # @param [Array<Object>] arr array of objects
       # @return [Boolean]
@@ -222,7 +262,7 @@ module Sneaql
         # [exp1.class, exp2.class].include?(FalseClass) || [exp1.class, exp2.class].include?(TrueClass)
         tmp.include?(FalseClass) || tmp.include?(TrueClass)
       end
-      
+
       # evaluates string or fixnum values to coerce into boolean
       # @param [Object] value
       # @return [Object]

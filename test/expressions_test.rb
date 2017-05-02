@@ -64,7 +64,12 @@ class TestSneaqlExpressionManager < Minitest::Test
       '22',
       x.evaluate_expression(':env_sneaql')
     )
-
+    
+    assert_equal(
+      '',
+      x.evaluate_expression("''")
+    )
+    
     assert_equal(
       3,
       x.evaluate_expression('{number}')
@@ -92,6 +97,17 @@ class TestSneaqlExpressionManager < Minitest::Test
       false,
       x.evaluate_expression('false')
     )
+    
+    assert_equal(
+      'turkey',
+      x.evaluate_expression("'turkey'")
+    )
+    
+    assert_equal(
+      '1999-04-02 00:00:00',
+      x.evaluate_expression("'1999-04-02 00:00:00'")
+    )
+
   end
 
   def test_evaluate_all_expressions
@@ -118,7 +134,8 @@ class TestSneaqlExpressionManager < Minitest::Test
       ['1', true],
       ['1234.56', true],
       ['1,234.56', false],
-      ["'hammer@g0g0_#'", true]
+      ["'hammer@g0g0_#'", true],
+      ["'1999-04-02 00:00:00'", true]
     ].each do |t|
       assert_equal(
         t[1],
@@ -131,7 +148,13 @@ class TestSneaqlExpressionManager < Minitest::Test
     x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('one',1)
     x.set_session_variable('two',2)
-
+    
+    lo_java_time = Time.at(java.sql.Date.parse('April 1, 1999, 00:00:00 GMT')/1000)
+    hi_java_time = Time.at(java.sql.Date.parse('April 2, 1999, 00:00:00 GMT')/1000)
+    
+    lo_string_time = "'1999-04-01 00:00:00'"
+    hi_string_time = "'1999-04-02 00:00:00'"
+    
     [
       {op1: 1, op: '=', op2: 1, result: true},
       {op1: 1, op: '=', op2: 2, result: false},
@@ -215,8 +238,32 @@ class TestSneaqlExpressionManager < Minitest::Test
       {op1: 'true', op: '=', op2: "1", result: true},
       {op1: 'true', op: '=', op2: "0", result: false},
       {op1: 'false', op: '=', op2: "1", result: false},
-      {op1: 'false', op: '=', op2: "0", result: true}
+      {op1: 'false', op: '=', op2: "0", result: true},
+      
+      {op1: lo_java_time, op: '=', op2: lo_java_time, result: true},
+      {op1: lo_java_time, op: '!=', op2: lo_java_time, result: false},
+      
+      {op1: lo_java_time, op: '=', op2: hi_java_time, result: false},
+      {op1: lo_java_time, op: '>', op2: hi_java_time, result: false},
+      {op1: lo_java_time, op: '<', op2: hi_java_time, result: true},
+      {op1: lo_java_time, op: '>=', op2: hi_java_time, result: false},
+      {op1: lo_java_time, op: '<=', op2: hi_java_time, result: true},
+
+      {op1: lo_java_time, op: '=', op2: hi_string_time, result: false},
+      {op1: lo_java_time, op: '>', op2: hi_string_time, result: false},
+      {op1: lo_java_time, op: '<', op2: hi_string_time, result: true},
+      {op1: lo_java_time, op: '>=', op2: hi_string_time, result: false},
+      {op1: lo_java_time, op: '<=', op2: hi_string_time, result: true},
+
+      {op1: lo_string_time, op: '=', op2: hi_java_time, result: false},
+      {op1: lo_string_time, op: '>', op2: hi_java_time, result: false},
+      {op1: lo_string_time, op: '<', op2: hi_java_time, result: true},
+      {op1: lo_string_time, op: '>=', op2: hi_java_time, result: false},
+      {op1: lo_string_time, op: '<=', op2: hi_java_time, result: true}
+           
     ].each do |v|
+      puts "testing #{v[:op1]} #{v[:op2]}"
+      puts "testing #{x.evaluate_expression(v[:op1])} #{x.evaluate_expression(v[:op2])}"
       assert_equal(
         v[:result],
         x.compare_expressions(

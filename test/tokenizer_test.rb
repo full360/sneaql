@@ -9,7 +9,7 @@ class TestTokenizer < Minitest::Test
   def test_classify
     sq = 39.chr
     bs = 92.chr
-    
+
     t = Sneaql::Core::Tokenizer.new
     [
       [' ', :whitespace],
@@ -28,11 +28,11 @@ class TestTokenizer < Minitest::Test
       )
     end
   end
-  
+
   def test_classify_all
     sq = 39.chr
     bs = 92.chr
-    
+
     t = Sneaql::Core::Tokenizer.new
     assert_equal(
       [
@@ -53,7 +53,7 @@ class TestTokenizer < Minitest::Test
   def test_tokenize
     sq = 39.chr
     bs = 92.chr
-    
+
     t = Sneaql::Core::Tokenizer.new
     [
       [
