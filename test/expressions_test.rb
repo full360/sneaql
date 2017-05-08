@@ -108,13 +108,23 @@ class TestSneaqlExpressionManager < Minitest::Test
       x.evaluate_expression("'1999-04-02 00:00:00'")
     )
 
+    # insure that time objects are passed through unchanged
+    this_time = Time.new.utc
+    assert_equal(
+      Time,
+      x.evaluate_expression(this_time).class
+    )
   end
 
   def test_evaluate_all_expressions
     x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('number', 3)
     x.set_session_variable('string', 'wordy')
-
+    x.set_session_variable('timestamp', Time.parse('April 1, 1999, 00:00:00 UTC'))
+    x.set_session_variable('gmt', Time.parse('April 1, 1999, 00:00:00 GMT'))
+    x.set_session_variable('timestamp_gmt', Time.parse('April 1, 1999, 00:00:00 GMT'))
+    x.set_session_variable('boolean', true)
+    
     assert_equal(
       '3 wordy',
       x.evaluate_all_expressions(':number :string')
@@ -124,6 +134,31 @@ class TestSneaqlExpressionManager < Minitest::Test
       '3 wordy',
       x.evaluate_all_expressions('{number} {string}')
     ) #deprecated
+    
+    assert_equal(
+      '1999-04-01 00:00:00 UTC',
+      x.evaluate_all_expressions(':timestamp')
+    )
+ 
+    # the string interpolation is not consistent
+    assert_equal(
+      true,
+      ['1999-04-01 00:00:00 UTC', '1999-04-01 00:00:00 +0000'].include?(
+        x.evaluate_all_expressions(':gmt')
+      )
+    )
+    
+    # variables with matching prefixes could fail unpredictably
+    # for example... in this example it is possible for
+    # :timestamp to substitute beforet :timestamp_gmt. this has
+    # been handled with a sort.reverse in the variable name
+    # iteration
+    assert_equal(
+      true,
+      ['1999-04-01 00:00:00 UTC', '1999-04-01 00:00:00 +0000'].include?(
+        x.evaluate_all_expressions(':timestamp_gmt')
+      )
+    )
   end
 
   def test_valid_expression_reference
@@ -145,6 +180,7 @@ class TestSneaqlExpressionManager < Minitest::Test
   end
 
   def test_compare_expressions
+    ENV['TZ']='UTC'
     x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('one',1)
     x.set_session_variable('two',2)

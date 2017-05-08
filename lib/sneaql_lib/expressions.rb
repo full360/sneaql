@@ -16,19 +16,6 @@ module Sneaql
         validate_environment_variables unless ENV['SNEAQL_DISABLE_SQL_INJECTION_CHECK']
         @environment_variables.freeze
         @session_variables = {}
-        @current_time_zone = ENV['SNEAQL_TIME_ZONE'] ? ENV['SNEAQL_TIME_ZONE'] : Time.new.zone.to_s
-      end
-      
-      def set_current_time_zone(new_tz)
-        @current_time_zone = new_tz
-      end
-
-      # converts a time object to the provided time zone
-      # @param[Time] ts timestamp with tz to ignore
-      # @param[String] tz time zone to use as override
-      def timestring_at_timezone(ts, tz)
-        t = Time.parse(ts)
-        return Time.parse("#{t.year}-#{t.month}-#{t.day} #{t.hour}:#{t.min}:#{t.sec} #{tz}")
       end
 
       # @param [String] var_name identifier for variable
@@ -135,11 +122,13 @@ module Sneaql
       # evaluates all environment variables in a given SQL statement.
       #   replaces...
       #     environment variables in the form :env_HOSTNAME
+      # variables are sorted and reversed before performing substitutions
+      # this prevents :var from partially overwriting :var_foo
       # @param [String] statement SQL statement to have all environment variables evaluated
       # @return [String] SQL statement with all variable references resolved
       def evaluate_session_variables(statement)
         # replaces :var_name in provided statement
-        @session_variables.keys.each do |k|
+        @session_variables.keys.sort.reverse.each do |k|
           statement.gsub!(/\:#{k}/, @session_variables[k].to_s)
         end
       end
@@ -147,11 +136,13 @@ module Sneaql
       # evaluates all session variables in a given SQL statement.
       #   replaces...
       #     session variables in the form :variable_name
+      # variables are sorted and reversed before performing substitutions
+      # this prevents :var from partially overwriting :var_foo
       # @param [String] statement SQL statement to have all session variables evaluated
       # @return [String] SQL statement with all variable references resolved
       def evaluate_environment_variables(statement)
         # replace env vars in the form :env_HOSTNAME
-        @environment_variables.keys.each do |e|
+        @environment_variables.keys.sort.reverse.each do |e|
           statement.gsub!(/\:env\_#{e}/i, @environment_variables[e])
         end
       end
@@ -215,6 +206,7 @@ module Sneaql
         if exp1.class == exp2.class
           nil # nothing to do... continue with comparison
         elsif array_has_boolean_value?([exp1, exp2])
+          # if one of the values is an actual Boolean object...
           unless [coerce_boolean(exp1), coerce_boolean(exp2)].include?(nil)
             exp1 = coerce_boolean(exp1)
             exp2 = coerce_boolean(exp2)
@@ -222,14 +214,16 @@ module Sneaql
         elsif exp1.class == Time
           tmp = coerce_datetime(exp2)
           if tmp
-            exp1 = coerce_datetime(exp1)
             exp2 = tmp
+          else
+            exp1, exp2 = exp1.to_s, exp2.to_s
           end
         elsif exp2.class == Time
           tmp = coerce_datetime(exp1)
           if tmp
             exp1 = tmp
-            exp2 = coerce_datetime(exp2)
+          else
+            exp1, exp2 = exp1.to_s, exp2.to_s
           end
         elsif [exp1.class, exp2.class].include?(Float)
           # if either is a float then make sure they are both floats
