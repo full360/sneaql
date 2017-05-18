@@ -372,12 +372,17 @@ module Sneaql
           Sneaql::Core::Commands::SneaqlOnError
         )
 
+        # argument types
+        def arg_definition
+          [:symbol]
+        end
+        
         # @param [String] recordset_name
         # @param [String] dirglob directory glob with optional wildcards
         def action(handler_action)
           # only take action if there is an error
           if @exception_manager.pending_error
-            case handler_action
+            case handler_action.downcase
             when 'continue' then 
               @logger.error("#{@exception_manager.pending_error.message}")
               if @exception_manager.pending_error.backtrace

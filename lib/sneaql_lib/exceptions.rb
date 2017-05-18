@@ -8,6 +8,10 @@ module Sneaql
       def initialize(logger = nil)
         @logger = logger ? logger : Logger.new(STDOUT)
       end
+      
+      def output_pending_error
+        @logger.error "pending error: #{@pending_error}" if @pending_error
+      end
     end
      
     # Base error class for Sneaql

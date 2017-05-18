@@ -253,7 +253,9 @@ module Sneaql
         this_step[:parser].statements.each_with_index do |this_stmt, stmt_index|
           # set this so that other processes can poll the state
           @current_statement = stmt_index + 1
-
+          
+          @exception_manager.output_pending_error
+          
           # log some useful info
           @logger.info("step: #{@current_step} statement: #{@current_statement}")
           @expression_handler.output_all_session_variables

@@ -111,6 +111,8 @@ module Sneaql
             valid << valid_operator?(a)
           when arg_definition[i] == :recordset then
             valid << valid_recordset?(a)
+          when arg_definition[i] == :symbol then
+            valid << valid_symbol?(a)
           else valid << false end
         end
         @logger.debug("arg validation results: #{valid}")
@@ -143,6 +145,16 @@ module Sneaql
       # @return [Boolean]
       def valid_recordset?(a)
         @recordset_manager.valid_recordset_name?(a.to_s.strip)
+      end
+      
+      # note that this is not a ruby symbol, but a sneaql symbol
+      # should be a contigiuous string consisting of only letters, digits
+      # and underscores
+      # @param [String] a value to test
+      # @return [Boolean]
+      def valid_symbol?(a)
+        return true if a.match(/^\w+$/)
+        false
       end
 
       private
