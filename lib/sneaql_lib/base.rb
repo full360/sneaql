@@ -74,11 +74,12 @@ module Sneaql
       # @param [Sneaql::Core::RecordsetManager] recordset_manager
       # @param [String] statement SQL statement provided in body, with all variables resolved
       # @param [Logger] logger object otherwise will default to new Logger
-      def initialize(jdbc_connection, expression_handler, recordset_manager, statement, logger = nil)
+      def initialize(jdbc_connection, expression_handler, exception_manager, recordset_manager, statement, logger = nil)
         @logger = logger ? logger : Logger.new(STDOUT)
 
         @jdbc_connection = jdbc_connection
         @expression_handler = expression_handler
+        @exception_manager = exception_manager
         @statement = statement
         @recordset_manager = recordset_manager
       end

@@ -78,13 +78,15 @@ module Sneaql
       @db_pass = @params[:db_pass]
       @database = @params[:database]
 
+      @expression_handler = create_expression_handler
+      @recordset_manager = create_recordset_manager
+      @exception_manager = create_exception_manager
+
       run if @params[:run] == true
     end
 
     # validate the transform.
     def validate
-      @expression_handler = create_expression_handler
-      @recordset_manager = create_recordset_manager
       @repo_manager = create_repo_manager
       @steps = create_metadata_manager
       @parsed_steps = create_parsed_steps(@steps)
@@ -117,8 +119,6 @@ module Sneaql
 
     # Runs the actual transform.
     def run
-      @expression_handler = create_expression_handler
-      @recordset_manager = create_recordset_manager
       @repo_manager = create_repo_manager
       @lock_manager = create_lock_manager if @params[:locked_transform] == true
       @steps = create_metadata_manager
@@ -158,6 +158,11 @@ module Sneaql
     # @return [Sneaql::Core::ExpressionHandler]
     def create_expression_handler
       Sneaql::Core::ExpressionHandler.new(@logger)
+    end
+
+    # Creates ExceptionHandler object
+    def create_exception_manager
+      Sneaql::Exceptions::ExceptionManager.new(@logger)
     end
 
     # Creates a RepoDownloadManager object
@@ -237,9 +242,9 @@ module Sneaql
     # not rollback automatically unless that is the default RDBMS
     # behavior for a connection that closes before a commit.
     def iterate_steps_and_statements
-      @parsed_steps.each do |this_step|
-        #special handling is required for the exit_step_if command
-        #because there is a nested loop the exit_step var is needed
+      @parsed_steps.each_with_index do |this_step|
+        # special handling is required for the exit_step_if command
+        # because there is a nested loop the exit_step var is needed
         exit_step = false
         break if exit_step == true
         # set this so that other processes can poll the state
@@ -268,12 +273,24 @@ module Sneaql
             c = Sneaql::Core.find_class(:command, this_cmd[:command]).new(
               @jdbc_connection,
               @expression_handler,
+              @exception_manager,
               @recordset_manager,
               @expression_handler.evaluate_all_expressions(this_stmt),
               @logger
             )
 
             c.action(*this_cmd[:arguments])
+
+            # check if there was an error from the action
+            if @exception_manager.pending_error != nil
+              # if there was an error... check to see if this is the last stmt in step
+              if stmt_index == (this_step[:parser].statements.length - 1)
+                # last step... so we know there is no error handler in this step
+                # therefore we should propagate the error
+                raise @exception_manager.pending_error
+              end
+            end
+
           rescue Sneaql::Exceptions::SQLTestStepExitCondition => e
             exit_step = true
             @logger.info e.message

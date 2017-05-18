@@ -1,3 +1,9 @@
+#### 0.0.15
+
+* on_error command tag and related changes
+* refactoring of object creation in lib/sneaql.rb
+
+
 #### 0.0.14
 
 * replaced split based command tag parsing with tokenizer, allowing for string literals with whitespace and future language features

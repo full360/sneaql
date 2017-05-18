@@ -45,7 +45,7 @@ module Sneaql
       # @param [String] statement_text_with_command
       # @return [Array]
       def tag_splitter(statement_text_with_command)
-        # updated to use tokenizer 
+        # updated to use tokenizer
         # splits out all the tag elements into an array
         # statement_text_with_command.split('-*/')[0].gsub('/*-', '').strip.split
         command = statement_text_with_command.split('-*/')[0].gsub('/*-', '').strip
@@ -84,6 +84,7 @@ module Sneaql
         c = Sneaql::Core.find_class(:command, this_cmd[:command]).new(
           nil,
           @expression_handler,
+          nil,
           @recordset_manager,
           nil,
           @logger

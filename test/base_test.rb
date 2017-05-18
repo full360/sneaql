@@ -24,6 +24,7 @@ class TestSneaqlBaseCommand < Sneaql::Core::SneaqlCommand
       a,
       @jdbc_connection,
       @expression_handler,
+      @exception_manager,
       @recordset_manager,
       @statement
     ]
@@ -40,13 +41,14 @@ class TestBaseCommand < Minitest::Test
     d = TestSneaqlBaseCommand.new(
       'jdbc',
       'expression',
+      'exceptions',
       'recordset',
       'statement'
     )
     d.action(*['a'])
     assert_equal(
       $test_sneaql_base_command_value,
-      ['a', 'jdbc', 'expression', 'recordset', 'statement']
+      ['a', 'jdbc', 'expression', 'exceptions', 'recordset', 'statement']
     )
   end
 
@@ -54,6 +56,7 @@ class TestBaseCommand < Minitest::Test
     d = TestSneaqlBaseCommand.new(
       'jdbc',
       Sneaql::Core::ExpressionHandler.new,
+      nil,
       Sneaql::Core::RecordsetManager.new(
         Sneaql::Core::ExpressionHandler.new
       ),

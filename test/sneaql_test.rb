@@ -22,8 +22,8 @@ class TestSneaqlTransform < Minitest::Test
       run: true
     })
     
-    assert_equal t.exit_code, 0
-    assert_equal t.current_step, 4
-    assert_equal t.current_statement, 2 #exit_step_if in da haus!
+    assert_equal 0, t.exit_code 
+    assert_equal 4, t.current_step
+    assert_equal 2, t.current_statement #exit_step_if in da haus!
   end
 end

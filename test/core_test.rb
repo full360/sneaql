@@ -48,6 +48,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       jdbc_connection,
       expression_handler,
       nil,
+      nil,
       nil
     )
     c.action *['var',22]
@@ -66,6 +67,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlAssign.new(
       jdbc_connection,
       expression_handler,
+      nil,
       nil,
       nil
     )
@@ -88,6 +90,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       jdbc_connection,
       expression_handler,
       nil,
+      nil,
       'select count(*) from test;'
     )
 
@@ -108,6 +111,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlAssignResult.new(
       jdbc_connection,
       expression_handler,
+      nil,
       nil,
       "select 'abcdef123456';"
     )
@@ -131,6 +135,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       jdbc_connection,
       expression_handler,
       nil,
+      nil,
       "update test set a=1;"
     )
 
@@ -151,6 +156,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlExecuteIf.new(
       jdbc_connection,
       expression_handler,
+      nil,
       nil,
       "update test set a=1;"
     )
@@ -179,9 +185,11 @@ class TestSneaqlCoreCommands < Minitest::Test
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
     expression_handler = Sneaql::Core::ExpressionHandler.new
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
     c = Sneaql::Core::Commands::SneaqlTest.new(
       jdbc_connection,
       expression_handler,
+      exception_manager,
       nil,
       'select count(*) from test;'
     )
@@ -190,7 +198,7 @@ class TestSneaqlCoreCommands < Minitest::Test
 
     assert_equal(
       Sneaql::Exceptions::SQLTestExitCondition,
-      r.class
+      exception_manager.pending_error.class
     )
 
     jdbc_connection.close
@@ -203,6 +211,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlTest.new(
       jdbc_connection,
       expression_handler,
+      nil,
       nil,
       'select count(*) from test;'
     )
@@ -221,9 +230,11 @@ class TestSneaqlCoreCommands < Minitest::Test
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
     expression_handler = Sneaql::Core::ExpressionHandler.new
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
     c = Sneaql::Core::Commands::SneaqlExitIf.new(
       jdbc_connection,
       expression_handler,
+      exception_manager,
       nil,
       'select count(*) from test;'
     )
@@ -246,6 +257,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       jdbc_connection,
       expression_handler,
       nil,
+      nil,
       'select count(*) from test;'
     )
 
@@ -267,6 +279,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       jdbc_connection,
       expression_handler,
       nil,
+      nil,
       'select count(*) from test;'
     )
 
@@ -287,6 +300,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlExitStepIf.new(
       jdbc_connection,
       expression_handler,
+      nil,
       nil,
       'select count(*) from test;'
     )
@@ -341,6 +355,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlRecordsetFromQuery.new(
       jdbc_connection,
       expression_handler,
+      nil,
       recordset_manager,
       'select * from test;'
     )
@@ -377,6 +392,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlIterateRecordset.new(
       jdbc_connection,
       expression_handler,
+      nil,
       recordset_manager,
       'insert into test2 values(:rs.a);'
     )
@@ -413,6 +429,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlIterateRecordset.new(
       jdbc_connection,
       expression_handler,
+      nil,
       recordset_manager,
       'insert into test2 values(:rs.a);'
     )
@@ -442,6 +459,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     c = Sneaql::Core::Commands::SneaqlRecordsetFromDirGlob.new(
       jdbc_connection,
       expression_handler,
+      nil,
       recordset_manager,
       ''
     )
@@ -454,6 +472,126 @@ class TestSneaqlCoreCommands < Minitest::Test
         File.exists?(r['path_name'])
       )
     end
+  end
+
+  def test_on_error_continue
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
+    
+    c = Sneaql::Core::Commands::SneaqlOnError.new(
+      jdbc_connection,
+      expression_handler,
+      exception_manager,
+      recordset_manager,
+      ''
+    )
+    
+    exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
+    exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
+    
+    c.action('continue')
+    
+    assert_equal(
+      nil,
+      exception_manager.pending_error
+    )
+
+    assert_equal(
+      nil,
+      exception_manager.last_iterated_record
+    )
+  end
+  
+  def test_on_error_exit_step
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
+    
+    c = Sneaql::Core::Commands::SneaqlOnError.new(
+      jdbc_connection,
+      expression_handler,
+      exception_manager,
+      recordset_manager,
+      ''
+    )
+    exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
+    exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
+    
+    catch_class = nil
+    
+    begin
+      c.action('exit_step')
+    rescue => e
+      catch_class = e
+    end
+    
+    assert_equal(
+      Sneaql::Exceptions::SQLTestStepExitCondition,
+      catch_class.class
+    )
+  end
+
+  def test_on_error_execute
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
+
+    exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
+    exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
+    
+    JDBCHelpers::Execute.new(
+      jdbc_connection,
+      'create table a(field1 integer, field2 varchar(60), err_type varchar(60));'
+    )
+
+    c = Sneaql::Core::Commands::SneaqlOnError.new(
+      jdbc_connection,
+      expression_handler,
+      exception_manager,
+      recordset_manager,
+      %{insert into a values (:err_record.field1, ':err_record.field2', ':err_type' );}
+    )
+ 
+    catch_class = nil
+    
+    c.action('execute')
+    
+    cnt = JDBCHelpers::SingleValueFromQuery.new(
+      jdbc_connection,
+      'select count(*) as cnt from a;'
+    ).result
+    
+    assert_equal(
+      1,
+      cnt
+    )
+    
+    vals = JDBCHelpers::QueryResultsToArray.new(
+      jdbc_connection,
+      'select * from a;'
+    ).results
+    
+    assert_equal(
+      1,
+      vals[0]['field1']
+    )
+
+    assert_equal(
+      'word',
+      vals[0]['field2']
+    )
+
+    assert_equal(
+      'Sneaql::Exceptions::UnhandledException',
+      vals[0]['err_type']
+    )
   end
 
   def test_argument_validation
@@ -484,6 +622,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       c = arg_val_test[:test_class].new(
         nil,
         expression_handler,
+        nil,
         recordset_manager,
         ''
       )

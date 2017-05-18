@@ -1,9 +1,25 @@
 module Sneaql
   # Exceptions for SneaQL
   module Exceptions
+    class ExceptionManager
+      attr_accessor :pending_error
+      attr_accessor :last_iterated_record
+      
+      def initialize(logger = nil)
+        @logger = logger ? logger : Logger.new(STDOUT)
+      end
+    end
+     
     # Base error class for Sneaql
     class BaseError < StandardError; end
 
+    # Exception used to to gracefully exit test
+    class UnhandledException < BaseError
+      def initialize(msg = 'Previous error was not handled.')
+        super
+      end
+    end
+    
     # Exception used to to gracefully exit test
     class SQLTestExitCondition < BaseError
       def initialize(msg = 'Exit condition met by test, this is not an error')

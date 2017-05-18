@@ -23,6 +23,8 @@ module Sneaql
         # @param [String] value expression (must be a string)
         def action(var_name, value)
           @expression_handler.set_session_variable(var_name, value)
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # argument types
@@ -46,6 +48,8 @@ module Sneaql
             target_var_name,
             sql_result
           )
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # argument types
@@ -78,6 +82,8 @@ module Sneaql
             'last_statement_rows_affected',
             rows_affected
           )
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # @return [Fixnum] rows affected by SQL statement
@@ -108,6 +114,8 @@ module Sneaql
               rows_affected
             )
           end
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # argument types
@@ -145,6 +153,8 @@ module Sneaql
           )
             raise Sneaql::Exceptions::SQLTestExitCondition
           end
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # argument types
@@ -223,6 +233,8 @@ module Sneaql
           r = query_results
           @logger.debug "adding #{r.length} recs as #{recordset_name}"
           @recordset_manager.store_recordset(recordset_name, r)
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # argument types
@@ -255,6 +267,8 @@ module Sneaql
           elsif ((args.size - 1) % 4) == 0
             iterate_records_conditionally(*args)
           end
+        rescue => e
+          @exception_manager.pending_error = e
         end
 
         # custom method for argument validation
@@ -295,6 +309,9 @@ module Sneaql
               rows_affected_current_statement(tmp)
             )
           end
+        rescue => e
+          @exception_manager.pending_error = e
+          raise e
         end
 
         # @param [*Array] args all the arguments passed to the calling function
@@ -312,6 +329,9 @@ module Sneaql
               rows_affected_current_statement(tmp)
             )
           end
+        rescue => e
+          @exception_manager.pending_error = e
+          raise e
         end
 
         # @return [Fixnum] rows affected by the SQL statement
@@ -339,6 +359,106 @@ module Sneaql
           r.map! { |d| { 'path_name' => d.to_s } }
           @logger.debug "adding #{r.length} recs as #{recordset_name}"
           @recordset_manager.store_recordset(recordset_name, r)
+        rescue => e
+          @exception_manager.pending_error = e
+        end
+      end
+      
+      # stores all the file paths matching the dir glob into a recordset
+      class SneaqlOnError < Sneaql::Core::SneaqlCommand
+        Sneaql::Core::RegisterMappedClass.new(
+          :command,
+          'on_error',
+          Sneaql::Core::Commands::SneaqlOnError
+        )
+
+        # @param [String] recordset_name
+        # @param [String] dirglob directory glob with optional wildcards
+        def action(handler_action)
+          # only take action if there is an error
+          if @exception_manager.pending_error
+            case handler_action
+            when 'continue' then 
+              @logger.error("#{@exception_manager.pending_error.message}")
+              if @exception_manager.pending_error.backtrace
+                @exception_manager.pending_error.backtrace.each {|b| @logger.debug(b) }
+              end
+              @exception_manager.pending_error = nil
+              @exception_manager.last_iterated_record = nil
+              @logger.info("continuing after error due to on_error handling")
+              
+            when 'exit_step' then
+              @logger.error("#{@exception_manager.pending_error.message}")
+              if @exception_manager.pending_error.backtrace
+                @exception_manager.pending_error.backtrace.each {|b| @logger.debug(b) }
+              end
+              @exception_manager.pending_error = nil
+              @exception_manager.last_iterated_record = nil
+              
+              @logger.info("exiting step due to on_error handling")
+              raise Sneaql::Exceptions::SQLTestStepExitCondition
+
+            when 'execute' then
+              @logger.error("#{@exception_manager.pending_error.message}")
+              if @exception_manager.pending_error.backtrace
+                @exception_manager.pending_error.backtrace.each {|b| @logger.debug(b) }
+              end
+              @logger.info("executing sql block due to on_error handling")
+              
+              @expression_handler.set_session_variable(
+                'last_statement_rows_affected',
+                rows_affected
+              )
+              
+              @exception_manager.pending_error = nil
+              @exception_manager.last_iterated_record = nil
+            end
+          end
+        end
+
+        def rows_affected
+          tmp = @statement
+          tmp = replace_last_record(tmp)
+          tmp = replace_error_details(tmp)
+          JDBCHelpers::Execute.new(
+            @jdbc_connection,
+            tmp,
+            @logger
+          ).rows_affected
+        end
+        
+        # replaces a string with references to the field values in the last
+        # record iterated (if present). use :err_record.field_name syntax
+        # @param [String] input_string containing potential :err_record references
+        # @return [String] string with :err_record references replaced
+        def replace_last_record(input_string)
+          tmp = input_string
+          if @exception_manager.last_iterated_record != nil
+            @exception_manager.last_iterated_record.keys.sort.reverse.each do |k|
+              puts "replacing #{k}"
+              tmp = tmp.gsub(
+                ":err_record.#{k}",
+                @exception_manager.last_iterated_record[k].to_s
+              )
+            end
+          end
+          tmp
+        end
+        
+        # replaces text `:err_message` and `:err_type` with appropriate
+        # values from the pending error
+        # @param [String] input_string string containing potential err detail references
+        # @return [String] string with err details replaced
+        def replace_error_details(input_string)
+          tmp = input_string
+          tmp = tmp.gsub(
+            ':err_message',
+            @exception_manager.pending_error.message.to_s
+          )
+          tmp = tmp.gsub(
+            ':err_type',
+            @exception_manager.pending_error.class.to_s
+          )
         end
       end
     end
