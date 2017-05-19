@@ -24,51 +24,5 @@ module Sneaql
         end
       end
     end
-
-    # source step metadata from a standardized table in the target database
-    class TransformStepTableManager < Sneaql::Core::StepMetadataManager
-      Sneaql::Core::RegisterMappedClass.new(
-        :step_metadata_manager,
-        'transform_steps_table',
-        Sneaql::StepManagers::TransformStepTableManager
-      )
-
-      # Manages steps based in a standardized table.
-      def manage_steps
-        jdbc_connection = JDBCHelpers::ConnectionFactory.new(
-          @params[:jdbc_url],
-          @params[:db_user],
-          @params[:db_pass]
-        ).connection
-
-        @steps = JDBCHelpers::QueryResultsToArray.new(
-          jdbc_connection,
-          steps_sql
-        ).results
-
-        @steps.map! do |s|
-          {
-            step_number: s['transform_step'],
-            step_file: s['sql_file_path_in_repo']
-          }
-        end
-
-        jdbc_connection.close
-      end
-
-      def steps_sql
-        %(select
-          transform_step
-          ,sql_file_path_in_repo
-        from
-          #{@params[:transform_steps_table]}
-        where
-          transform_name='#{@params[:transform_name]}'
-          and
-          is_active=#{@params[:database_manager].has_boolean ? 'true' : 1}
-        order by
-          transform_step asc;)
-      end
-    end
   end
 end

@@ -1,3 +1,11 @@
+#### 0.0.16
+
+* removed database manager, enabling general JDBC support
+* removed features that depend upon database manager
+  * lock manager
+  * standard db objects
+  * table based step manager
+
 #### 0.0.15
 
 * on_error command tag and related changes

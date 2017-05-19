@@ -13,7 +13,6 @@ class TestSneaqlTransform < Minitest::Test
       transform_name: 'test-transform',
       repo_base_dir: "#{$base_path}/test/fixtures/test-transform",
       repo_type: 'local', #could be 'http','local_file'
-      database: 'sqlite', #could be 'vertica','sqlite'
       jdbc_url: 'jdbc:sqlite:memory',
       db_user: '',
       db_pass: '',

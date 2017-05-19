@@ -142,12 +142,6 @@ the above will execute the transform in the current directory.  note that sneaql
         
         logger.debug("available sneaql resources: #{Sneaql::Core.class_map}")
         
-        database = Sneaql::Core.database_type(jdbc_url)
-        unless database
-          raise 'database specified in jdbc url is not supported, or malformed jdbc url'
-          exit 1 
-        end
-        
         begin  
           require_relative jdbc_driver_jar
           java_import jdbc_driver_class
@@ -161,7 +155,6 @@ the above will execute the transform in the current directory.  note that sneaql
             transform_name: base_path,
             repo_base_dir: base_path,
             repo_type: 'local',
-            database: database,
             jdbc_url: jdbc_url,
             db_user: db_user,
             db_pass: db_pass,
@@ -263,12 +256,6 @@ the above will execute the transform in the current directory.  note that sneaql
         
         logger.debug("available sneaql resources: #{Sneaql::Core.class_map}")
         
-        database = Sneaql::Core.database_type(jdbc_url)
-        unless database
-          raise 'database specified in jdbc url is not supported, or malformed jdbc url'
-          exit 1 
-        end
-        
         begin  
           require_relative jdbc_driver_jar
           java_import jdbc_driver_class
@@ -282,7 +269,6 @@ the above will execute the transform in the current directory.  note that sneaql
             transform_name: base_path,
             repo_base_dir: base_path,
             repo_type: 'local',
-            database: database,
             jdbc_url: jdbc_url,
             db_user: db_user,
             db_pass: db_pass,

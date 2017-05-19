@@ -1,17 +1,13 @@
 require 'jdbc_helpers'
 require 'logger'
 
-#require_relative 'sneaql_lib/logging.rb'
 require_relative 'sneaql_lib/exceptions.rb'
 require_relative 'sneaql_lib/core.rb'
-require_relative 'sneaql_lib/lock_manager.rb'
 require_relative 'sneaql_lib/repo_manager.rb'
 require_relative 'sneaql_lib/step_manager.rb'
 require_relative 'sneaql_lib/parser.rb'
 require_relative 'sneaql_lib/expressions.rb'
 require_relative 'sneaql_lib/recordset.rb'
-require_relative 'sneaql_lib/database_manager.rb'
-require_relative 'sneaql_lib/standard_db_objects.rb'
 require_relative 'sneaql_lib/docker.rb'
 require_relative 'sneaql_lib/tokenizer.rb'
 
@@ -76,7 +72,6 @@ module Sneaql
       @jdbc_url = @params[:jdbc_url]
       @db_user = @params[:db_user]
       @db_pass = @params[:db_pass]
-      @database = @params[:database]
 
       @expression_handler = create_expression_handler
       @recordset_manager = create_recordset_manager
