@@ -217,10 +217,9 @@ module Sneaql
     # not rollback automatically unless that is the default RDBMS
     # behavior for a connection that closes before a commit.
     def iterate_steps_and_statements
-      @parsed_steps.each_with_index do |this_step|
+      @parsed_steps.each_with_index do |this_step, i|
         # raise any lingering errors not handled in previous step
         raise @exception_manager.pending_error if @exception_manager.pending_error != nil
-        
         # set this so that other processes can poll the state
         @current_step = this_step[:step_number]
         # within a step... iterate through each statement
@@ -280,6 +279,9 @@ module Sneaql
           end
         end
       end
+    rescue => e
+      @logger.error(e.message)
+      e.backtrace.each { |r| @logger.error(r) }
     end
   end
 end
