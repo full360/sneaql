@@ -1,3 +1,7 @@
+#### 0.0.17
+
+* incremented for debugging weird container issue
+
 #### 0.0.16
 
 * removed database manager, enabling general JDBC support
