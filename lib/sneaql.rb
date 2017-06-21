@@ -46,7 +46,6 @@ module Sneaql
     #     transform_name: 'test-transform',
     #     repo_base_dir: "test/fixtures/test-transform",
     #     repo_type: 'local',
-    #     database: 'sqlite',
     #     jdbc_url: 'jdbc:sqlite:memory',
     #     db_user: 'dbuser',
     #     db_pass: 'password',
@@ -58,33 +57,30 @@ module Sneaql
     # @param [Hash] params various parameters are passed to define the transform
     # @param [Logger] logger customer logger if provided (otherwise default logger is created)
     def initialize(params, logger = nil)
+      # initialzing and basic parameter stuff
       @logger = logger ? logger : Logger.new(STDOUT)
-
       @start_time = Time.new.utc
-
       current_status(:initializing)
       @params = params
-
       @exit_code = 0
-
       @transform_name = @params[:transform_name]
-      @transform_lock_id = @params[:transform_lock_id]
       @jdbc_url = @params[:jdbc_url]
       @db_user = @params[:db_user]
       @db_pass = @params[:db_pass]
-
+      
+      # build fancy objects for processing the transform
       @expression_handler = create_expression_handler
       @recordset_manager = create_recordset_manager
       @exception_manager = create_exception_manager
-
+      @repo_manager = create_repo_manager
+      @steps = create_metadata_manager
+      @parsed_steps = create_parsed_steps(@steps)
+      
       run if @params[:run] == true
     end
 
     # validate the transform.
     def validate
-      @repo_manager = create_repo_manager
-      @steps = create_metadata_manager
-      @parsed_steps = create_parsed_steps(@steps)
       current_status(:validating)
       validate_parsed_steps(@parsed_steps)
     rescue Sneaql::Exceptions::TransformIsLocked => e
@@ -114,17 +110,12 @@ module Sneaql
 
     # Runs the actual transform.
     def run
-      @repo_manager = create_repo_manager
-      @lock_manager = create_lock_manager if @params[:locked_transform] == true
-      @steps = create_metadata_manager
-      @parsed_steps = create_parsed_steps(@steps)
+      current_status(:validating)
       validate_parsed_steps(@parsed_steps)
+      current_status(:connecting_to_database)
       @jdbc_connection = create_jdbc_connection
       current_status(:running)
       iterate_steps_and_statements
-    rescue Sneaql::Exceptions::TransformIsLocked => e
-      @transform_error = e
-      @logger.info(e.message)
     rescue Sneaql::Exceptions::SQLTestExitCondition => e
       @transform_error = nil
       @logger.info(e.message)
@@ -135,7 +126,6 @@ module Sneaql
       @logger.error(e.message)
       e.backtrace { |b| @logger.error b }
     ensure
-      @lock_manager.remove_lock if @params[:locked_transform] == true
       @jdbc_connection.close if @jdbc_connection
       @end_time = Time.new.utc
 
@@ -165,16 +155,6 @@ module Sneaql
     # @return [Sneaql::Core::RepoDownloadManager]
     def create_repo_manager
       Sneaql::Core.find_class(:repo_manager, @params[:repo_type]).new(@params, @logger)
-    end
-
-    # Creates a TransformLockManager object
-    # The actual object returns depends upon params[:locked_transform] provided at initialize.
-    # @return [Sneaql::Core::RepoDownloadManager]
-    def create_lock_manager
-      # create a lock manager for this transform (uses a separate connection)
-      lock_manager = Sneaql::TransformLockManager.new(@params, @logger)
-      raise Sneaql::Exceptions::TransformIsLocked unless lock_manager.acquire_lock == true
-      lock_manager
     end
 
     # Creates a StepMetadataManager object
@@ -238,10 +218,9 @@ module Sneaql
     # behavior for a connection that closes before a commit.
     def iterate_steps_and_statements
       @parsed_steps.each_with_index do |this_step|
-        # special handling is required for the exit_step_if command
-        # because there is a nested loop the exit_step var is needed
-        exit_step = false
-        break if exit_step == true
+        # raise any lingering errors not handled in previous step
+        raise @exception_manager.pending_error if @exception_manager.pending_error != nil
+        
         # set this so that other processes can poll the state
         @current_step = this_step[:step_number]
         # within a step... iterate through each statement
@@ -249,6 +228,7 @@ module Sneaql
           # set this so that other processes can poll the state
           @current_statement = stmt_index + 1
           
+          # log the pending error
           @exception_manager.output_pending_error
           
           # log some useful info
@@ -275,7 +255,13 @@ module Sneaql
               @expression_handler.evaluate_all_expressions(this_stmt),
               @logger
             )
-
+            
+            if @exception_manager.pending_error != nil
+              unless c.class == Sneaql::Core::Commands::SneaqlOnError
+                raise @exception_manager.pending_error
+              end
+            end
+            
             c.action(*this_cmd[:arguments])
 
             # check if there was an error from the action
@@ -289,7 +275,6 @@ module Sneaql
             end
 
           rescue Sneaql::Exceptions::SQLTestStepExitCondition => e
-            exit_step = true
             @logger.info e.message
             break
           end

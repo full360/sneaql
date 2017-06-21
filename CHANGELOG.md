@@ -5,6 +5,8 @@
   * lock manager
   * standard db objects
   * table based step manager
+* refactoring of Transform object to reduce redundancy
+* added gem version output to binary
 
 #### 0.0.15
 

@@ -138,8 +138,9 @@ the above will execute the transform in the current directory.  note that sneaql
         end
         
         configure_logging_format()
-        require_sneaql_extensions() if ENV['SNEAQL_EXTENSIONS']
         
+        logger.info("SneaQL version #{Gem.loaded_specs['sneaql'].version.to_s}")
+        require_sneaql_extensions() if ENV['SNEAQL_EXTENSIONS']
         logger.debug("available sneaql resources: #{Sneaql::Core.class_map}")
         
         begin  
@@ -252,6 +253,7 @@ the above will execute the transform in the current directory.  note that sneaql
         end
         
         configure_logging_format()
+        logger.info("SneaQL version #{Gem.loaded_specs['sneaql'].version.to_s}")
         require_sneaql_extensions() if ENV['SNEAQL_EXTENSIONS']
         
         logger.debug("available sneaql resources: #{Sneaql::Core.class_map}")
