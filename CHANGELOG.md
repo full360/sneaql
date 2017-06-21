@@ -1,3 +1,7 @@
+#### 0.0.19
+
+* updated for latest jruby
+
 #### 0.0.18
 
 * beefed up error backtraces and logging
