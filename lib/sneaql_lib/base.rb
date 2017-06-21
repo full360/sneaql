@@ -117,6 +117,10 @@ module Sneaql
         end
         @logger.debug("arg validation results: #{valid}")
         !valid.include?(false)
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # validates that the value is a valid variable name
@@ -124,6 +128,10 @@ module Sneaql
       # @return [Boolean]
       def valid_variable?(a)
         @expression_handler.valid_session_variable_name?(a.to_s.strip)
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # validates that the value is a valid expression
@@ -131,6 +139,10 @@ module Sneaql
       # @return [Boolean]
       def valid_expression?(a)
         @expression_handler.valid_expression_reference?(a.to_s.strip)
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # validates that the value is a valid operator
@@ -138,6 +150,10 @@ module Sneaql
       # @return [Boolean]
       def valid_operator?(a)
         @expression_handler.valid_operators.include?(a.to_s.strip)
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # validates that the value is a valid recordset name
@@ -145,6 +161,10 @@ module Sneaql
       # @return [Boolean]
       def valid_recordset?(a)
         @recordset_manager.valid_recordset_name?(a.to_s.strip)
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
       
       # note that this is not a ruby symbol, but a sneaql symbol
@@ -155,6 +175,10 @@ module Sneaql
       def valid_symbol?(a)
         return true if a.match(/^\w+$/)
         false
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       private
@@ -185,6 +209,10 @@ module Sneaql
 
         # perform the actual actions of managing the repo
         manage_repo
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # method to drop and rebuild the specified directory
@@ -194,6 +222,10 @@ module Sneaql
         @logger.info("dropping and recreating repo directory #{directory}")
         FileUtils.remove_dir(directory) if Dir.exist?(directory)
         FileUtils.mkdir_p(directory)
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # override in your implementation
@@ -211,6 +243,10 @@ module Sneaql
             zip_file.extract(f, f_path) unless File.exist?(f_path)
           end
         end
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
     end
 
@@ -225,6 +261,10 @@ module Sneaql
         @logger = logger ? logger : Logger.new(STDOUT)
         @params = params
         manage_steps
+      rescue => e
+        @logger.error(e.message)
+        e.backtrace { |r| @logger.error(r) }
+        raise e
       end
 
       # override with a method that will override steps with an array of

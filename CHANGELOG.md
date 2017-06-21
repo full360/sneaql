@@ -1,3 +1,7 @@
+#### 0.0.18
+
+* beefed up error backtraces and logging
+
 #### 0.0.17
 
 * incremented for debugging weird container issue
