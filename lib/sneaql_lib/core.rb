@@ -231,7 +231,7 @@ module Sneaql
         # @param [String] recordset_name name of the recordset in which to store the results
         def action(recordset_name)
           r = query_results
-          @logger.debug "adding #{r.length} recs as #{recordset_name}"
+          @logger.info "adding #{r.length} recs as #{recordset_name}"
           @recordset_manager.store_recordset(recordset_name, r)
         rescue => e
           @exception_manager.pending_error = e
@@ -252,6 +252,28 @@ module Sneaql
         end
       end
 
+      # runs the query then stores the array of hashes into the recordset hash
+      class SneaqlRemoveRecordset < Sneaql::Core::SneaqlCommand
+        Sneaql::Core::RegisterMappedClass.new(
+          :command,
+          'remove_recordset',
+          Sneaql::Core::Commands::SneaqlRemoveRecordset
+        )
+
+        # @param [String] recordset_name name of the recordset in which to store the results
+        def action(recordset_name)
+          @logger.info "removing recordset #{recordset_name}"
+          @recordset_manager.remove_recordset(recordset_name)
+        rescue => e
+          @exception_manager.pending_error = e
+        end
+
+        # argument types
+        def arg_definition
+          [:recordset]
+        end
+      end
+      
       # iterates a recordset and runs the sql statement for each record
       class SneaqlIterateRecordset < Sneaql::Core::SneaqlCommand
         Sneaql::Core::RegisterMappedClass.new(
@@ -299,6 +321,7 @@ module Sneaql
 
         # @param [String] recordset recordset to iterate
         def iterate_all_records(recordset)
+          raise Sneaql::Exceptions::RecordsetDoesNotExistError unless @recordset_manager.recordset.has_key?(recordset)
           @logger.info "iterating recordset #{recordset}..."
           @recordset_manager.recordset[recordset].each_with_index do |i, n|
             @logger.debug("#{n + 1} of #{recordset}: #{i}")

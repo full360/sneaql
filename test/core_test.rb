@@ -373,6 +373,47 @@ class TestSneaqlCoreCommands < Minitest::Test
     )
   end
 
+  def test_remove_recordset
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
+    c = Sneaql::Core::Commands::SneaqlRecordsetFromQuery.new(
+      jdbc_connection,
+      expression_handler,
+      nil,
+      recordset_manager,
+      'select * from test;'
+    )
+
+    r = run_action(c, *['rs'])
+
+    target_rs = [
+      {"a"=>12345, "b"=>"chicken", "c"=>"2016-07-01T23:23:23.000", "d"=>"2016-07-01"},
+      {"a"=>12346, "b"=>"turkey", "c"=>"2016-07-01T23:23:23.000", "d"=>"2016-07-01"}
+    ]
+
+    assert_equal(
+      target_rs,
+      recordset_manager.recordset['rs']
+    )
+
+    c = Sneaql::Core::Commands::SneaqlRemoveRecordset.new(
+      jdbc_connection,
+      expression_handler,
+      nil,
+      recordset_manager,
+      ''
+    )
+    
+    r = run_action(c, *['rs'])
+    
+    assert_equal(
+      nil,
+      recordset_manager.recordset['rs']
+    )
+  end
+  
   def test_iterate
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
@@ -410,6 +451,40 @@ class TestSneaqlCoreCommands < Minitest::Test
     )
   end
 
+  def test_iterate_empty_recordset
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
+    recordset_manager.store_recordset(
+      'rs',
+      []
+    )
+    JDBCHelpers::Execute.new(
+      jdbc_connection,
+      "create table test2(a integer);"
+    )
+    c = Sneaql::Core::Commands::SneaqlIterateRecordset.new(
+      jdbc_connection,
+      expression_handler,
+      nil,
+      recordset_manager,
+      'insert into test2 values(:rs.a);'
+    )
+
+    r = run_action(c, *['rs'])
+
+    max = JDBCHelpers::SingleValueFromQuery.new(
+      jdbc_connection,
+      "select max(a) from test2;"
+    ).result
+
+    assert_equal(
+      nil,
+      max
+    )
+  end
+  
   def test_iterate_with_filter
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)

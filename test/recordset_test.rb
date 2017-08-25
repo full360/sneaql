@@ -44,6 +44,45 @@ class TestRecordsetManager < Minitest::Test
     )
   end
 
+  def test_remove_recordset
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    rs = Sneaql::Core::RecordsetManager.new(expression_handler)
+
+    test_rs = [
+      {'a' => 2, 'b' => '20151201'},
+      {'a' => 3, 'b' => '20151201'},
+      {'a' => 2, 'b' => '20160303'}
+    ]
+
+    rs.store_recordset('rs',test_rs)
+
+    assert_equal(
+      test_rs,
+      rs.recordset['rs']
+    )
+    
+    rs.remove_recordset('rs')
+    
+    assert_equal(
+      false,
+      rs.recordset.has_key?('rs')
+    )
+  end
+
+  def test_empty_recordset
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    rs = Sneaql::Core::RecordsetManager.new(expression_handler)
+
+    test_rs = []
+
+    rs.store_recordset('rs',test_rs)
+
+    assert_equal(
+      test_rs,
+      rs.recordset['rs']
+    )
+  end
+   
   def test_parse_expression
     expression_handler = Sneaql::Core::ExpressionHandler.new
     rs = Sneaql::Core::RecordsetManager.new(expression_handler)

@@ -21,10 +21,20 @@ module Sneaql
         recordset[name] = rs
       end
 
+      # Deletes a recordset if it exists
+      # @param [String] name name for recordset to delete
+      def remove_recordset(name)
+        if @recordset.has_key?(name)
+          @recordset.delete(name)
+        end
+      end
+      
       # Validates recordset.  Must be an array of hashes with identical keys.
       # @param [Array<Hash>] rs recordset to validate
       def recordset_valid?(rs)
         return false unless rs.class == Array
+        # empty recordset is valid
+        return true if rs == []
         r1 = rs[0].keys
 
         rs.each do |record|
@@ -68,7 +78,7 @@ module Sneaql
         # takes in argument array as an argument
         # returns array of expressions to be checked at run time
         args.delete_at(0) # get rid of the first element, recordset ref
-        args.each_slice(4).to_a.map{ |x| { condition: x[0].downcase, field: x[1], operator: x[2], expression: x[3]}}
+        args.each_slice(4).to_a.map{ |x| { condition: x[0].downcase, field: x[1], operator: x[2], expression: x[3]} }
       end
 
       # applies a conditional expression set against a record.

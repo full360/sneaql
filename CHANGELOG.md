@@ -1,3 +1,8 @@
+#### 0.0.20
+
+* added support for empty recordsets
+* added remove_recordset command
+
 #### 0.0.19
 
 * updated for latest jruby
@@ -33,4 +38,3 @@
 * small fixes to expression logic
 * added changelog :-)
 * rubocop refactoring
-

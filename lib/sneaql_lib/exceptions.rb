@@ -60,6 +60,13 @@ module Sneaql
       end
     end
 
+    # Recordset check failure indicator
+    class RecordsetDoesNotExistError < BaseError
+      def initialize(msg = 'Specified ecordset does not exist')
+        super
+      end
+    end
+    
     # General error evaluating expression.
     class ExpressionEvaluationError < BaseError
       def initialize(msg = 'Error evaluating expression')
