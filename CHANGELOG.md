@@ -2,6 +2,7 @@
 
 * added support for empty recordsets
 * added remove_recordset command
+* cleaned up on_error logging to eliminate confusion
 
 #### 0.0.19
 

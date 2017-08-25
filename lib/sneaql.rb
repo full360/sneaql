@@ -244,9 +244,19 @@ module Sneaql
           end
 
           begin
+            # find the class assciated with this command
+            k = Sneaql::Core.find_class(:command, this_cmd[:command])
+            
+            # if there is an error... check to see if this is the error handler
+            if @exception_manager.pending_error != nil
+              unless k == Sneaql::Core::Commands::SneaqlOnError
+                raise @exception_manager.pending_error
+              end
+            end
+            
             # instantiate a new instance of the command class
             # and call it's action method with arguments
-            c = Sneaql::Core.find_class(:command, this_cmd[:command]).new(
+            c = k.new(
               @jdbc_connection,
               @expression_handler,
               @exception_manager,
@@ -255,12 +265,7 @@ module Sneaql
               @logger
             )
             
-            if @exception_manager.pending_error != nil
-              unless c.class == Sneaql::Core::Commands::SneaqlOnError
-                raise @exception_manager.pending_error
-              end
-            end
-            
+            # performs the work of the current command
             c.action(*this_cmd[:arguments])
 
             # check if there was an error from the action
