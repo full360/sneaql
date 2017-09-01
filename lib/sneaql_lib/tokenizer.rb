@@ -102,7 +102,8 @@ module Sneaql
         return :escape if input_char.match(/\\/)
 
         # any word character
-        return :word if input_char.match(/\w/)
+        # also includes - for use in negative numbers
+        return :word if input_char.match(/\w|\-/)
 
         # colon is used to represent variables
         return :colon if input_char.match(/\:/)

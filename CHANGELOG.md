@@ -1,3 +1,7 @@
+#### 0.0.21
+
+* fixed bug that wasn't allowing or recognizing negative numbers as command tag arguments.
+
 #### 0.0.20
 
 * added support for empty recordsets

@@ -212,6 +212,18 @@ class TestSneaqlExpressionManager < Minitest::Test
       {op1: 2, op: '<=', op2: 1, result: false},
       {op1: 1, op: '<=', op2: 2, result: true},
 
+      {op1: -1, op: '<=', op2: -1, result: true},
+      {op1: 1, op: '<=', op2: -1, result: false},
+      {op1: -1, op: '<=', op2: 1, result: true},
+
+      {op1: -1, op: '>=', op2: -1, result: true},
+      {op1: 1, op: '>=', op2: -1, result: true},
+      {op1: -1, op: '>=', op2: 1, result: false},
+
+      {op1: -1, op: '=', op2: -1, result: true},
+      {op1: 1, op: '=', op2: -1, result: false},
+      {op1: -1, op: '=', op2: 1, result: false},
+       
       {op1: ':one', op: '=', op2: ':one', result: true},
       {op1: ':one', op: '=', op2: 2, result: false},
 

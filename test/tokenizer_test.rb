@@ -15,6 +15,7 @@ class TestTokenizer < Minitest::Test
       [' ', :whitespace],
       [bs, :escape],
       ['f', :word],
+      ['-', :word],
       [':', :colon],
       [sq, :singlequote],
       ['{', :openbrace],
@@ -63,6 +64,15 @@ class TestTokenizer < Minitest::Test
           'a',
           '=',
           '2'
+        ]
+      ],
+      [
+        'execute_if a = -2',
+        [
+          'execute_if',
+          'a',
+          '=',
+          '-2'
         ]
       ],
       [
