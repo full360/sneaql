@@ -1,3 +1,7 @@
+#### 0.0.22
+
+* transform error was not being cascaded upward after backtrace
+
 #### 0.0.21
 
 * fixed bug that wasn't allowing or recognizing negative numbers as command tag arguments.

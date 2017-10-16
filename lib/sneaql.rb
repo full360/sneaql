@@ -287,6 +287,7 @@ module Sneaql
     rescue => e
       @logger.error(e.message)
       e.backtrace.each { |r| @logger.error(r) }
+      raise e
     end
   end
 end
