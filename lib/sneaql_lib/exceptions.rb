@@ -101,5 +101,12 @@ module Sneaql
         super
       end
     end
+    
+    # Utilized by fail option of on_error
+    class ForceFailure < BaseError
+      def initialize(msg = 'Sneaql is forcing an exit due to an error condition')
+        super
+      end
+    end
   end
 end

@@ -440,6 +440,15 @@ module Sneaql
               
               @exception_manager.pending_error = nil
               @exception_manager.last_iterated_record = nil
+
+            when 'fail' then
+              @logger.error("#{@exception_manager.pending_error.message}")
+              if @exception_manager.pending_error.backtrace
+                @exception_manager.pending_error.backtrace.each {|b| @logger.debug(b) }
+              end
+              @logger.info("exiting sneaql due to failure")
+              
+              raise Sneaql::Exceptions::ForceFailure
             end
           end
         end

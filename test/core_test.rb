@@ -669,6 +669,37 @@ class TestSneaqlCoreCommands < Minitest::Test
     )
   end
 
+  def test_on_error_fail
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
+    
+    c = Sneaql::Core::Commands::SneaqlOnError.new(
+      jdbc_connection,
+      expression_handler,
+      exception_manager,
+      recordset_manager,
+      ''
+    )
+    exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
+    exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
+    
+    catch_class = nil
+    
+    begin
+      c.action('fail')
+    rescue => e
+      catch_class = e
+    end
+    
+    assert_equal(
+      Sneaql::Exceptions::ForceFailure,
+      catch_class.class
+    )
+  end
+  
   def test_argument_validation
     expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)

@@ -1,3 +1,7 @@
+#### 0.0.23
+
+* added fail option to on_error command tag
+
 #### 0.0.22
 
 * transform error was not being cascaded upward after backtrace
