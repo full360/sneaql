@@ -498,6 +498,29 @@ module Sneaql
           )
         end
       end
+
+      # raises a fatal error to exit the transform if the condition evaluates to true
+      class SneaqlFailIf < Sneaql::Core::SneaqlCommand
+        Sneaql::Core::RegisterMappedClass.new(
+          :command,
+          'fail_if',
+          Sneaql::Core::Commands::SneaqlFailIf
+        )
+
+        # @param [String] operand1 expression as left operand
+        # @param [String] operator comparison operator supported by expression handler
+        # @param [String] operand2 expression as right operand
+        def action(operand1, operator, operand2)
+          if @expression_handler.compare_expressions(operator, operand1, operand2)
+            raise Sneaql::Exceptions::ForceFailure
+          end
+        end
+
+        # argument types
+        def arg_definition
+          [:expression, :operator, :expression]
+        end
+      end
     end
   end
 end

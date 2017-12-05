@@ -739,4 +739,49 @@ class TestSneaqlCoreCommands < Minitest::Test
       )
     end
   end
+
+  def test_fail_if_positive
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    exception_manager = Sneaql::Exceptions::ExceptionManager.new
+    c = Sneaql::Core::Commands::SneaqlFailIf.new(
+      jdbc_connection,
+      expression_handler,
+      exception_manager,
+      nil,
+      'select count(*) from test;'
+    )
+
+    r = run_action(c, *['2','>','1'])
+
+    assert_equal(
+      Sneaql::Exceptions::ForceFailure,
+      r.class
+    )
+
+    jdbc_connection.close
+  end
+
+  def test_fail_if_negative
+    jdbc_connection = give_me_an_empty_test_database
+    add_table_to_database(jdbc_connection)
+    expression_handler = Sneaql::Core::ExpressionHandler.new
+    c = Sneaql::Core::Commands::SneaqlFailIf.new(
+      jdbc_connection,
+      expression_handler,
+      nil,
+      nil,
+      'select count(*) from test;'
+    )
+
+    r = run_action(c, *['2','<','1'])
+
+    assert_equal(
+      nil,
+      r
+    )
+
+    jdbc_connection.close
+  end
 end
