@@ -1,3 +1,9 @@
+#### 0.0.26
+
+* Fix the sql_injection_filter test failures
+* DRY some of the Tests
+* Gracefully handle raised SQLTest Exit condition errors at the highest level
+
 #### 0.0.23
 
 * added fail option to on_error command tag
