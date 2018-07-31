@@ -67,7 +67,7 @@ module Sneaql
       @jdbc_url = @params[:jdbc_url]
       @db_user = @params[:db_user]
       @db_pass = @params[:db_pass]
-      
+
       # build fancy objects for processing the transform
       @expression_handler = create_expression_handler
       @recordset_manager = create_recordset_manager
@@ -75,7 +75,7 @@ module Sneaql
       @repo_manager = create_repo_manager
       @steps = create_metadata_manager
       @parsed_steps = create_parsed_steps(@steps)
-      
+
       run if @params[:run] == true
     end
 
@@ -226,10 +226,10 @@ module Sneaql
         this_step[:parser].statements.each_with_index do |this_stmt, stmt_index|
           # set this so that other processes can poll the state
           @current_statement = stmt_index + 1
-          
+
           # log the pending error
           @exception_manager.output_pending_error
-          
+
           # log some useful info
           @logger.info("step: #{@current_step} statement: #{@current_statement}")
           @expression_handler.output_all_session_variables
@@ -246,14 +246,14 @@ module Sneaql
           begin
             # find the class assciated with this command
             k = Sneaql::Core.find_class(:command, this_cmd[:command])
-            
+
             # if there is an error... check to see if this is the error handler
             if @exception_manager.pending_error != nil
               unless k == Sneaql::Core::Commands::SneaqlOnError
                 raise @exception_manager.pending_error
               end
             end
-            
+
             # instantiate a new instance of the command class
             # and call it's action method with arguments
             c = k.new(
@@ -264,7 +264,7 @@ module Sneaql
               @expression_handler.evaluate_all_expressions(this_stmt),
               @logger
             )
-            
+
             # performs the work of the current command
             c.action(*this_cmd[:arguments])
 
@@ -284,6 +284,8 @@ module Sneaql
           end
         end
       end
+    rescue Sneaql::Exceptions::SQLTestStepExitCondition, Sneaql::Exceptions::SQLTestExitCondition
+      @logger.info("SQLTest Exception Handled, continuing")
     rescue => e
       @logger.error(e.message)
       e.backtrace.each { |r| @logger.error(r) }
