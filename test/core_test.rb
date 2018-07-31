@@ -1,7 +1,4 @@
-gem "minitest"
-require 'minitest/autorun'
-
-$base_path=File.expand_path("#{File.dirname(__FILE__)}/../")
+require_relative "helpers/helper"
 
 require_relative "#{$base_path}/lib/sneaql_lib/core.rb"
 require_relative "#{$base_path}/lib/sneaql_lib/expressions.rb"
@@ -405,15 +402,15 @@ class TestSneaqlCoreCommands < Minitest::Test
       recordset_manager,
       ''
     )
-    
+
     r = run_action(c, *['rs'])
-    
+
     assert_equal(
       nil,
       recordset_manager.recordset['rs']
     )
   end
-  
+
   def test_iterate
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
@@ -484,7 +481,7 @@ class TestSneaqlCoreCommands < Minitest::Test
       max
     )
   end
-  
+
   def test_iterate_with_filter
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
@@ -555,7 +552,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     exception_manager = Sneaql::Exceptions::ExceptionManager.new
-    
+
     c = Sneaql::Core::Commands::SneaqlOnError.new(
       jdbc_connection,
       expression_handler,
@@ -563,12 +560,12 @@ class TestSneaqlCoreCommands < Minitest::Test
       recordset_manager,
       ''
     )
-    
+
     exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
     exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
-    
+
     c.action('continue')
-    
+
     assert_equal(
       nil,
       exception_manager.pending_error
@@ -579,14 +576,14 @@ class TestSneaqlCoreCommands < Minitest::Test
       exception_manager.last_iterated_record
     )
   end
-  
+
   def test_on_error_exit_step
     jdbc_connection = give_me_an_empty_test_database
     add_table_to_database(jdbc_connection)
     expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     exception_manager = Sneaql::Exceptions::ExceptionManager.new
-    
+
     c = Sneaql::Core::Commands::SneaqlOnError.new(
       jdbc_connection,
       expression_handler,
@@ -596,15 +593,15 @@ class TestSneaqlCoreCommands < Minitest::Test
     )
     exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
     exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
-    
+
     catch_class = nil
-    
+
     begin
       c.action('exit_step')
     rescue => e
       catch_class = e
     end
-    
+
     assert_equal(
       Sneaql::Exceptions::SQLTestStepExitCondition,
       catch_class.class
@@ -620,7 +617,7 @@ class TestSneaqlCoreCommands < Minitest::Test
 
     exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
     exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
-    
+
     JDBCHelpers::Execute.new(
       jdbc_connection,
       'create table a(field1 integer, field2 varchar(60), err_type varchar(60));'
@@ -633,26 +630,26 @@ class TestSneaqlCoreCommands < Minitest::Test
       recordset_manager,
       %{insert into a values (:err_record.field1, ':err_record.field2', ':err_type' );}
     )
- 
+
     catch_class = nil
-    
+
     c.action('execute')
-    
+
     cnt = JDBCHelpers::SingleValueFromQuery.new(
       jdbc_connection,
       'select count(*) as cnt from a;'
     ).result
-    
+
     assert_equal(
       1,
       cnt
     )
-    
+
     vals = JDBCHelpers::QueryResultsToArray.new(
       jdbc_connection,
       'select * from a;'
     ).results
-    
+
     assert_equal(
       1,
       vals[0]['field1']
@@ -675,7 +672,7 @@ class TestSneaqlCoreCommands < Minitest::Test
     expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)
     exception_manager = Sneaql::Exceptions::ExceptionManager.new
-    
+
     c = Sneaql::Core::Commands::SneaqlOnError.new(
       jdbc_connection,
       expression_handler,
@@ -685,21 +682,21 @@ class TestSneaqlCoreCommands < Minitest::Test
     )
     exception_manager.pending_error = Sneaql::Exceptions::UnhandledException.new
     exception_manager.last_iterated_record = { 'field1'=> 1, 'field2' => 'word' }
-    
+
     catch_class = nil
-    
+
     begin
       c.action('fail')
     rescue => e
       catch_class = e
     end
-    
+
     assert_equal(
       Sneaql::Exceptions::ForceFailure,
       catch_class.class
     )
   end
-  
+
   def test_argument_validation
     expression_handler = Sneaql::Core::ExpressionHandler.new
     recordset_manager = Sneaql::Core::RecordsetManager.new(expression_handler)

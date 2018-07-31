@@ -1,7 +1,4 @@
-gem "minitest"
-require 'minitest/autorun'
-
-$base_path=File.expand_path("#{File.dirname(__FILE__)}/../")
+require_relative "helpers/helper"
 
 require_relative "#{$base_path}/lib/sneaql_lib/base.rb"
 require_relative "#{$base_path}/lib/sneaql_lib/core.rb"

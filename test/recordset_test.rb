@@ -1,7 +1,4 @@
-gem "minitest"
-require 'minitest/autorun'
-
-$base_path = File.expand_path("#{File.dirname(__FILE__)}/../")
+require_relative "helpers/helper"
 
 require_relative "#{$base_path}/lib/sneaql_lib/core.rb"
 require_relative "#{$base_path}/lib/sneaql_lib/expressions.rb"
@@ -60,9 +57,9 @@ class TestRecordsetManager < Minitest::Test
       test_rs,
       rs.recordset['rs']
     )
-    
+
     rs.remove_recordset('rs')
-    
+
     assert_equal(
       false,
       rs.recordset.has_key?('rs')
@@ -82,7 +79,7 @@ class TestRecordsetManager < Minitest::Test
       rs.recordset['rs']
     )
   end
-   
+
   def test_parse_expression
     expression_handler = Sneaql::Core::ExpressionHandler.new
     rs = Sneaql::Core::RecordsetManager.new(expression_handler)
