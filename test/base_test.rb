@@ -1,9 +1,4 @@
-gem 'minitest'
-require 'minitest/autorun'
-
-# using a global variable because this is only a test
-$base_path = File.expand_path("#{File.dirname(__FILE__)}/../")
-
+require_relative "helpers/helper"
 require_relative "#{$base_path}/lib/sneaql_lib/base.rb"
 require_relative "#{$base_path}/lib/sneaql_lib/expressions.rb"
 require_relative "#{$base_path}/lib/sneaql_lib/recordset.rb"
@@ -78,8 +73,8 @@ class TestBaseCommand < Minitest::Test
     assert_equal(true, d.valid_symbol?('giblet'))
     assert_equal(true, d.valid_symbol?('giblet_99'))
     assert_equal(false, d.valid_symbol?('giblet 99'))
-    assert_equal(false, d.valid_symbol?('giblet 99 $')) 
-    
+    assert_equal(false, d.valid_symbol?('giblet 99 $'))
+
     #insures that args can be tested as a whole
     assert_equal(true, d.validate_args([':a','>','turkey','quail']))
   end

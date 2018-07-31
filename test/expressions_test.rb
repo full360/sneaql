@@ -64,12 +64,12 @@ class TestSneaqlExpressionManager < Minitest::Test
       '22',
       x.evaluate_expression(':env_sneaql')
     )
-    
+
     assert_equal(
       '',
       x.evaluate_expression("''")
     )
-    
+
     assert_equal(
       3,
       x.evaluate_expression('{number}')
@@ -87,7 +87,7 @@ class TestSneaqlExpressionManager < Minitest::Test
       '3',
       x.evaluate_expression('{number}')
     ) #deprecated
-    
+
     assert_equal(
       true,
       x.evaluate_expression('true')
@@ -97,12 +97,12 @@ class TestSneaqlExpressionManager < Minitest::Test
       false,
       x.evaluate_expression('false')
     )
-    
+
     assert_equal(
       'turkey',
       x.evaluate_expression("'turkey'")
     )
-    
+
     assert_equal(
       '1999-04-02 00:00:00',
       x.evaluate_expression("'1999-04-02 00:00:00'")
@@ -124,7 +124,7 @@ class TestSneaqlExpressionManager < Minitest::Test
     x.set_session_variable('gmt', Time.parse('April 1, 1999, 00:00:00 GMT'))
     x.set_session_variable('timestamp_gmt', Time.parse('April 1, 1999, 00:00:00 GMT'))
     x.set_session_variable('boolean', true)
-    
+
     assert_equal(
       '3 wordy',
       x.evaluate_all_expressions(':number :string')
@@ -134,12 +134,12 @@ class TestSneaqlExpressionManager < Minitest::Test
       '3 wordy',
       x.evaluate_all_expressions('{number} {string}')
     ) #deprecated
-    
+
     assert_equal(
       '1999-04-01 00:00:00 UTC',
       x.evaluate_all_expressions(':timestamp')
     )
- 
+
     # the string interpolation is not consistent
     assert_equal(
       true,
@@ -147,7 +147,7 @@ class TestSneaqlExpressionManager < Minitest::Test
         x.evaluate_all_expressions(':gmt')
       )
     )
-    
+
     # variables with matching prefixes could fail unpredictably
     # for example... in this example it is possible for
     # :timestamp to substitute beforet :timestamp_gmt. this has
@@ -184,13 +184,13 @@ class TestSneaqlExpressionManager < Minitest::Test
     x = Sneaql::Core::ExpressionHandler.new
     x.set_session_variable('one',1)
     x.set_session_variable('two',2)
-    
+
     lo_java_time = Time.at(java.sql.Date.parse('April 1, 1999, 00:00:00 GMT')/1000)
     hi_java_time = Time.at(java.sql.Date.parse('April 2, 1999, 00:00:00 GMT')/1000)
-    
+
     lo_string_time = "'1999-04-01 00:00:00'"
     hi_string_time = "'1999-04-02 00:00:00'"
-    
+
     [
       {op1: 1, op: '=', op2: 1, result: true},
       {op1: 1, op: '=', op2: 2, result: false},
@@ -223,7 +223,7 @@ class TestSneaqlExpressionManager < Minitest::Test
       {op1: -1, op: '=', op2: -1, result: true},
       {op1: 1, op: '=', op2: -1, result: false},
       {op1: -1, op: '=', op2: 1, result: false},
-       
+
       {op1: ':one', op: '=', op2: ':one', result: true},
       {op1: ':one', op: '=', op2: 2, result: false},
 
@@ -287,10 +287,10 @@ class TestSneaqlExpressionManager < Minitest::Test
       {op1: 'true', op: '=', op2: "0", result: false},
       {op1: 'false', op: '=', op2: "1", result: false},
       {op1: 'false', op: '=', op2: "0", result: true},
-      
+
       {op1: lo_java_time, op: '=', op2: lo_java_time, result: true},
       {op1: lo_java_time, op: '!=', op2: lo_java_time, result: false},
-      
+
       {op1: lo_java_time, op: '=', op2: hi_java_time, result: false},
       {op1: lo_java_time, op: '>', op2: hi_java_time, result: false},
       {op1: lo_java_time, op: '<', op2: hi_java_time, result: true},
@@ -308,7 +308,7 @@ class TestSneaqlExpressionManager < Minitest::Test
       {op1: lo_string_time, op: '<', op2: hi_java_time, result: true},
       {op1: lo_string_time, op: '>=', op2: hi_java_time, result: false},
       {op1: lo_string_time, op: '<=', op2: hi_java_time, result: true}
-           
+
     ].each do |v|
       puts "testing #{v[:op1]} #{v[:op2]}"
       puts "testing #{x.evaluate_expression(v[:op1])} #{x.evaluate_expression(v[:op2])}"
@@ -368,7 +368,7 @@ class TestSneaqlExpressionManager < Minitest::Test
     ENV.delete('TEST2')
     ENV.delete('SNEAQL_AVAILABLE_ENV_VARS')
   end
-  
+
   def test_sql_injection_filter
     x = Sneaql::Core::ExpressionHandler.new
     [
@@ -396,25 +396,29 @@ class TestSneaqlExpressionManager < Minitest::Test
       )
     end
   end
-  
+
   def test_validate_environment_variables
     ENV['badboy'] = 'drop table users;'
-    
+    # enable injection check
+    ENV.delete('SNEAQL_DISABLE_SQL_INJECTION_CHECK')
+
     error_occurred = false
     begin
       x = Sneaql::Core::ExpressionHandler.new
     rescue => e
       error_occurred = true
     end
-    
+
     assert_equal(
       true,
       error_occurred
     )
-    
+
     ENV.delete('badboy')
+    # Disable injection check
+    ENV['SNEAQL_DISABLE_SQL_INJECTION_CHECK']="TEST"
   end
-  
+
   def test_coerce_boolean
     x = Sneaql::Core::ExpressionHandler.new
     [
@@ -436,7 +440,7 @@ class TestSneaqlExpressionManager < Minitest::Test
       )
     end
   end
-  
+
   def test_array_has_boolean_value?
     x = Sneaql::Core::ExpressionHandler.new
     [
@@ -451,7 +455,7 @@ class TestSneaqlExpressionManager < Minitest::Test
       )
     end
   end
-  
+
   def test_text_to_boolean
     x = Sneaql::Core::ExpressionHandler.new
     [
