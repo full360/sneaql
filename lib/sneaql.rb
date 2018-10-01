@@ -217,8 +217,10 @@ module Sneaql
     # not rollback automatically unless that is the default RDBMS
     # behavior for a connection that closes before a commit.
     def iterate_steps_and_statements
+      # each step is a file full of statements
       @parsed_steps.each_with_index do |this_step, i|
         # raise any lingering errors not handled in previous step
+        # on_error tag must exist in the same step file that raised the error
         raise @exception_manager.pending_error if @exception_manager.pending_error != nil
         # set this so that other processes can poll the state
         @current_step = this_step[:step_number]
@@ -227,7 +229,7 @@ module Sneaql
           # set this so that other processes can poll the state
           @current_statement = stmt_index + 1
 
-          # log the pending error
+          # log the pending error if there is one
           @exception_manager.output_pending_error
 
           # log some useful info
@@ -240,7 +242,9 @@ module Sneaql
 
           # evaluate any variable references in the arguments
           if this_cmd[:arguments]
-            this_cmd[:arguments].map! { |a| @expression_handler.evaluate_expression(a) }
+            this_cmd[:arguments].map! do |a| 
+              @expression_handler.evaluate_expression(a)
+            end
           end
 
           begin
@@ -277,16 +281,24 @@ module Sneaql
                 raise @exception_manager.pending_error
               end
             end
-
+          
+          # this is where exit_step_if is handled
           rescue Sneaql::Exceptions::SQLTestStepExitCondition => e
             @logger.info e.message
             break
           end
         end
       end
-    rescue Sneaql::Exceptions::SQLTestStepExitCondition, Sneaql::Exceptions::SQLTestExitCondition
-      @logger.info("SQLTest Exception Handled, continuing")
+    # exit_if conditions are handled here
+    # this will exit the transform because we are outside of the loop above
+    # note that the exit code will still be 0, allowing for graceful exit.
+    # it might make sense to provide another tag error_if which will raise
+    # a non-0 exit code for incident tracking.
+    rescue Sneaql::Exceptions::SQLTestExitCondition
+      @logger.info("exit_if condition is met... exiting sneaql")
+    # any other errors are handled here with detailed logging
     rescue => e
+      @logger.error("exiting sneaql due to an unhandled exception...")
       @logger.error(e.message)
       e.backtrace.each { |r| @logger.error(r) }
       raise e

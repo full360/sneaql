@@ -1,6 +1,10 @@
+#### 0.0.27
+
+* Clean up error handling in sneaql.rb and comments
+
 #### 0.0.26
 
-* Fix the sql_injection_filter test failures
+* Fix the sql\_injection\_filter test failures
 * DRY some of the Tests
 * Gracefully handle raised SQLTest Exit condition errors at the highest level
 
